@@ -29,6 +29,37 @@ export type { TelemetryStreamStatus } from "./events/telemetryStream.js";
 export { FaultInjector } from "./faults/faultInjector.js";
 export { FAULT_TYPES } from "./faults/faultTypes.js";
 export type { Fault, FaultType } from "./faults/faultTypes.js";
+export {
+  BUILT_IN_FLEET_SCENARIO_IDS,
+  BUILT_IN_FLEET_SCENARIOS,
+  getBuiltInFleetScenario,
+} from "./fleet/builtInFleetScenarios.js";
+export type { BuiltInFleetScenarioId } from "./fleet/builtInFleetScenarios.js";
+export {
+  createFleetReplayLog,
+  deserializeFleetReplayLog,
+  FLEET_REPLAY_LOG_VERSION,
+  serializeFleetReplayLog,
+  validateFleetReplayLog,
+} from "./fleet/fleetReplay.js";
+export {
+  renderFleetReplayReport,
+  renderFleetScenarioReport,
+} from "./fleet/fleetReport.js";
+export {
+  FleetScenarioRunner,
+  runFleetScenario,
+} from "./fleet/fleetScenarioRunner.js";
+export type {
+  FleetReplayLog,
+  FleetReplayValidationResult,
+  FleetRobotProfile,
+  FleetScenarioProfile,
+  FleetScenarioRunResult,
+  FleetScenarioRunSummary,
+  FleetValidationResult,
+} from "./fleet/fleetTypes.js";
+export { validateFleetScenario } from "./fleet/fleetValidator.js";
 export { AdapterTelemetryCollector } from "./hardware/adapterTelemetryCollector.js";
 export type {
   AdapterTelemetryCollectorOptions,

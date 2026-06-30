@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.6 is split into nine small layers.
+Interstice Telemetry v0.7 is split into ten small layers.
 
 ## Simulator
 
@@ -99,8 +99,10 @@ calls, subscribers observe the same values in the same order. Playback has no
 timers, asynchronous background loop, network access, or hardware dependency.
 
 Current replay non-goals are scheduling events according to timestamps,
-network transport, multi-robot logs, and direct disk persistence. Applications
-may store the serialized JSON using their own persistence layer.
+network transport, one globally sequenced multi-robot event stream, and direct
+disk persistence. The fleet layer can wrap independent robot logs without
+changing this contract. Applications may store serialized JSON using their own
+persistence layer.
 
 ## Scenario layer
 
@@ -204,6 +206,67 @@ show validation status, sequence bounds, and deterministic event-type counts.
 No report uses timers, background work, networking, file-system persistence,
 terminal capabilities, or mutable global state. Equal input and equal options
 therefore produce byte-for-byte equal output.
+
+## Fleet scenario layer
+
+The fleet layer composes existing single-robot scenario primitives without
+changing them. `FleetScenarioProfile` defines fleet identity, description,
+global duration and step interval, optional metadata, and one or more
+`FleetRobotProfile` entries. Each robot entry supplies a unique robot ID, a
+reusable `ScenarioProfile`, and optional fleet-specific metadata.
+
+### Per-robot scenario reuse and validation
+
+`validateFleetScenario` checks fleet identity and timing, requires at least one
+robot, rejects duplicate or empty robot IDs, and runs the existing scenario
+validator against every embedded profile after overriding its robot ID with
+the fleet robot ID. This makes the wrapper identity authoritative while
+retaining single-robot seeds, initial states, scheduled faults, and metadata.
+The runner clones its input and applies fleet duration and step values only to
+the effective per-robot profiles used for execution.
+
+### Deterministic sorted stepping
+
+`FleetScenarioRunner` validates first, creates one `RobotSimulator`,
+`TelemetryStream`, and `ReplayRecorder` per robot, and sorts runtimes by robot
+ID. One synchronous global loop advances every robot by the same delta in that
+stable order. Fault schedules are evaluated against fleet elapsed time and
+each scheduled fault is injected once when the clock reaches or crosses its
+time. A final partial step reaches durations that are not evenly divisible by
+the fleet step interval.
+
+```text
+FleetScenarioProfile
+  -> validate
+  -> sort FleetRobotProfiles by robotId
+  -> [RobotSimulator -> TelemetryStream -> ReplayRecorder] per robot
+  -> step every robot on one fleet clock
+  -> per-robot ScenarioRunResult + aggregate fleet summary
+```
+
+The result retains normal `ScenarioRunResult` objects keyed by robot ID and
+adds robot count, global step count, total events, total faults, and final
+states. Event IDs and sequences remain deterministic and independent per
+robot; v0.7 does not invent a global event sequence.
+
+### Fleet replay wrapper and reporting
+
+`FleetReplayLog` stores fleet identity, version, deterministic creation time,
+optional metadata, sorted per-robot `ReplayLog` objects, and their summed event
+count. Creation, structured validation, JSON serialization, and JSON
+deserialization are pure in-memory operations. The wrapper preserves each
+single-robot replay contract rather than flattening or reordering events.
+
+Fleet scenario and replay renderers are pure fixed-layout text views. They show
+aggregate counts plus sorted final-state and per-robot event sections, so equal
+input produces equal output suitable for terminals and CI logs.
+
+### Fleet non-goals
+
+The fleet layer is a synchronous simulation coordinator only. It includes no
+networking, distributed consensus, ROS integration, real robot fleet control,
+hardware discovery, global clock synchronization, timers, background loops, or
+asynchronous polling.
 
 ## Hardware adapter layer
 

@@ -24,6 +24,7 @@ npm run example:replay
 npm run example:scenario
 npm run example:console
 npm run example:hardware
+npm run example:fleet
 ```
 
 Create and step a simulator:
@@ -315,20 +316,69 @@ npm run example:hardware
 deterministic virtual implementations only. There is no GPIO, serial, ROS,
 networking, timer, background loop, or asynchronous hardware polling.
 
+## Deterministic multi-robot scenarios
+
+Version 0.7 adds synchronous fleet orchestration while preserving every
+single-robot API. Multi-robot telemetry matters because coordination software,
+fleet dashboards, replay tooling, and fault handling need repeatable data from
+several independently behaving robots long before a physical fleet is
+available.
+
+A `FleetScenarioProfile` assigns a unique fleet robot ID to each reusable
+single-robot `ScenarioProfile`. The fleet duration and step interval form one
+global clock. `FleetScenarioRunner` creates a simulator, stream, and recorder
+per robot, then manually steps them in sorted robot-ID order. The result
+contains each normal `ScenarioRunResult`, aggregate totals and final states,
+and a fleet replay wrapper that preserves the independent per-robot logs.
+
+```ts
+import {
+  getBuiltInFleetScenario,
+  renderFleetScenarioReport,
+  runFleetScenario,
+} from "interstice-telemetry";
+
+const scenario = getBuiltInFleetScenario("mixed-fault-fleet");
+if (!scenario) {
+  throw new Error("Fleet scenario not found");
+}
+
+const result = runFleetScenario(scenario);
+console.log(renderFleetScenarioReport(result));
+console.log(result.fleetReplayLog);
+```
+
+The built-in fleet profiles are:
+
+- `two-robot-patrol`
+- `mixed-fault-fleet`
+- `signal-loss-fleet`
+- `overheat-and-battery-fleet`
+
+Run the complete fleet scenario and replay reporting example:
+
+```bash
+npm run example:fleet
+```
+
+Version 0.7 is a deterministic fleet testbed, not a distributed robot-control
+system. It adds no networking, ROS, real hardware fleet control, timers,
+background loops, or asynchronous polling.
+
 ## Current limitations
 
-Version 0.6 models one robot per simulator, scenario, replay log, and adapter
-collector, uses deliberately simple physics, and provides fixed-layout
-plain-text reports. Hardware adapters are virtual and synchronous. The SDK
-does not provide real device integration, disk persistence, networking, ROS,
-background streaming, an interactive or web UI, environment physics, or
-multi-robot scenarios.
+Version 0.7 still models one robot per simulator, event stream, replay log, and
+adapter collector; fleet support coordinates those existing units through a
+synchronous wrapper. Event sequence numbers remain per robot rather than
+global. Physics is deliberately simple, reports use fixed-layout plain text,
+and hardware adapters are virtual. The SDK does not provide real device or
+fleet control, disk persistence, networking, ROS, background streaming, an
+interactive or web UI, or environment physics.
 
 ## Future direction
 
-The project will grow toward multi-robot scenarios, persistence/export, and
-adapter event streams while keeping its simulation, replay, scenario,
-reporting, and adapter core deterministic and transport-independent. See
-[the roadmap](docs/Roadmap.md).
+The project will grow toward persistence/export and adapter event streams while
+keeping its simulation, replay, scenario, fleet, reporting, and adapter core
+deterministic and transport-independent. See [the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).

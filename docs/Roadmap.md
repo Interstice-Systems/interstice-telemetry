@@ -27,10 +27,12 @@ Added synchronous hardware adapter contracts, deterministic virtual battery,
 motor, IMU, and system adapters, structured adapter validation, and
 adapter-backed telemetry collection using the existing snapshot contract.
 
-## v0.7 — Multi-robot scenario support
+## v0.7 — Multi-robot scenario support (completed)
 
-Coordinate multiple robot identities, event streams, and scenario timelines
-while retaining deterministic ordering.
+Added fleet scenario profiles, four built-in fleet scenarios, structured fleet
+validation, sorted synchronous fleet execution, per-robot results, fleet replay
+wrappers, aggregate summaries, deterministic console reports, and an end-to-end
+example.
 
 ## v0.8 — Persistence and export layer
 

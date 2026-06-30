@@ -1,7 +1,7 @@
 {
   "name": "interstice-telemetry",
-  "version": "0.6.0",
-  "description": "A deterministic robotics telemetry simulator and hardware adapter interface.",
+  "version": "0.7.0",
+  "description": "A deterministic single-robot and fleet telemetry simulator.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +25,8 @@
     "example:replay": "tsx examples/replay-log.ts",
     "example:scenario": "tsx examples/scenario-profile.ts",
     "example:console": "tsx examples/console-dashboard.ts",
-    "example:hardware": "tsx examples/hardware-adapters.ts"
+    "example:hardware": "tsx examples/hardware-adapters.ts",
+    "example:fleet": "tsx examples/fleet-scenario.ts"
   },
   "engines": {
     "node": ">=20"
