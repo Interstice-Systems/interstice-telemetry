@@ -5,9 +5,10 @@
 Added deterministic, manually stepped telemetry event streams with explicit
 lifecycle control, subscriptions, fault events, and robot state-change events.
 
-## v0.3 — Replay logs
+## v0.3 — Replay logs (completed)
 
-Record, load, validate, and deterministically replay telemetry logs.
+Added event recording, a versioned replay log model, structured validation,
+JSON serialization and deserialization, and synchronous deterministic playback.
 
 ## v0.4 — Scenario profiles
 

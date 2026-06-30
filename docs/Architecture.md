@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.2 is split into five small layers.
+Interstice Telemetry v0.3 is split into six small layers.
 
 ## Simulator
 
@@ -49,6 +49,58 @@ transport policy. Those concerns can be layered on later.
 
 The JSON output helper serializes the public snapshot contract without adding
 transport behavior. Future output formats can use the same boundary.
+
+## Replay layer
+
+The replay layer records and reproduces the public `TelemetryEvent` contract.
+It is additive to the simulator and stream: recording observes events, while
+playback operates on an already-created log without advancing a simulator.
+
+### Replay log model
+
+A `ReplayLog` contains a format version, one robot ID, an ISO creation time,
+an optional simulation seed, the declared event count, an ordered event array,
+and optional caller metadata. Events are stored in their original form so
+their IDs, types, simulator-clock timestamps, robot IDs, sequences, and
+payloads remain the authoritative recorded values.
+
+`serializeReplayLog` and `deserializeReplayLog` convert between this plain
+object model and JSON. They do not read or write files.
+
+### Recorder
+
+`ReplayRecorder` starts inactive. A stream can subscribe its bound `record`
+handler directly; events are ignored while the recorder is inactive and
+appended in delivery order while it is active. `clear` removes the current
+recording, and `toLog` creates a new log and event array without rewriting the
+events. The robot ID and creation time can be configured; otherwise they are
+derived from the first recorded event.
+
+### Player
+
+`ReplayPlayer` starts stopped and maintains a cursor into a replay log. `start`
+enables playback, `step` synchronously emits one event, and `playAll`
+synchronously emits every remaining event. Reaching the end stops the player.
+Subscribers receive the original event objects in exact log order.
+
+### Validator
+
+`validateReplayLog` returns `valid`, `errors`, and `warnings` instead of
+throwing or returning only a boolean. It checks required log identity and
+version fields, declared event count, required event fields, known event types,
+strictly increasing sequences, and agreement between every event robot ID and
+the log robot ID.
+
+### Deterministic replay guarantees
+
+Replay does not generate new IDs, timestamps, sequences, or payloads and does
+not reorder events. Given the same valid log and the same sequence of player
+calls, subscribers observe the same values in the same order. Playback has no
+timers, asynchronous background loop, network access, or hardware dependency.
+
+Current replay non-goals are scheduling events according to timestamps,
+network transport, multi-robot logs, and direct disk persistence. Applications
+may store the serialized JSON using their own persistence layer.
 
 ## No hardware dependencies
 
