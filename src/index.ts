@@ -29,6 +29,34 @@ export type { TelemetryStreamStatus } from "./events/telemetryStream.js";
 export { FaultInjector } from "./faults/faultInjector.js";
 export { FAULT_TYPES } from "./faults/faultTypes.js";
 export type { Fault, FaultType } from "./faults/faultTypes.js";
+export { AdapterTelemetryCollector } from "./hardware/adapterTelemetryCollector.js";
+export type {
+  AdapterTelemetryCollectorOptions,
+  TelemetryCollectionTimestamp,
+} from "./hardware/adapterTelemetryCollector.js";
+export { validateHardwareAdapter } from "./hardware/adapterValidator.js";
+export type {
+  HardwareAdapter,
+  SteppableHardwareAdapter,
+} from "./hardware/hardwareAdapter.js";
+export { HARDWARE_ADAPTER_STATUSES } from "./hardware/hardwareTypes.js";
+export type {
+  BatteryReading,
+  HardwareAdapterInfo,
+  HardwareAdapterStatus,
+  HardwareAdapterValidationResult,
+  ImuReading,
+  MotorReading,
+  SystemReading,
+} from "./hardware/hardwareTypes.js";
+export { VirtualBatteryAdapter } from "./hardware/virtualBatteryAdapter.js";
+export type { VirtualBatteryAdapterOptions } from "./hardware/virtualBatteryAdapter.js";
+export { VirtualImuAdapter } from "./hardware/virtualImuAdapter.js";
+export type { VirtualImuAdapterOptions } from "./hardware/virtualImuAdapter.js";
+export { VirtualMotorAdapter } from "./hardware/virtualMotorAdapter.js";
+export type { VirtualMotorAdapterOptions } from "./hardware/virtualMotorAdapter.js";
+export { VirtualSystemAdapter } from "./hardware/virtualSystemAdapter.js";
+export type { VirtualSystemAdapterOptions } from "./hardware/virtualSystemAdapter.js";
 export { snapshotToJson } from "./output/jsonOutput.js";
 export {
   deserializeReplayLog,

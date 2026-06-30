@@ -21,10 +21,11 @@ log integration.
 Added deterministic plain-text reports for scenarios, telemetry snapshots,
 event timelines, fault events, and replay logs, plus a terminal-first example.
 
-## v0.6 — Hardware adapter interface
+## v0.6 — Hardware adapter interface (completed)
 
-Define optional adapters that map real devices and robotics middleware onto the
-same telemetry contract.
+Added synchronous hardware adapter contracts, deterministic virtual battery,
+motor, IMU, and system adapters, structured adapter validation, and
+adapter-backed telemetry collection using the existing snapshot contract.
 
 ## v0.7 — Multi-robot scenario support
 
@@ -36,7 +37,13 @@ while retaining deterministic ordering.
 Add explicit adapters for storing and exporting replay logs and reports without
 coupling the core SDK to a database or file-system policy.
 
+## v0.9 — Adapter event streams
+
+Add explicit, deterministic event production around adapter-backed telemetry
+while keeping scheduling, transport, and real hardware polling out of the core.
+
 ## v1.0 — Robotics telemetry SDK
 
 Stabilize the public API for simulation, event processing, replay, scenarios,
-console reporting, persistence adapters, and hardware-backed telemetry.
+console reporting, persistence adapters, adapter event streams, and
+hardware-backed telemetry.

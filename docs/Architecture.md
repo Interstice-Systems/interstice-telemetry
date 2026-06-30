@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.5 is split into eight small layers.
+Interstice Telemetry v0.6 is split into nine small layers.
 
 ## Simulator
 
@@ -205,9 +205,59 @@ No report uses timers, background work, networking, file-system persistence,
 terminal capabilities, or mutable global state. Equal input and equal options
 therefore produce byte-for-byte equal output.
 
-## No hardware dependencies
+## Hardware adapter layer
 
-The foundation has no ROS, device driver, network, or hardware dependency.
-This keeps tests fast and reproducible and prevents early hardware assumptions
-from becoming part of the public model. Hardware adapters can be introduced
-later behind explicit interfaces.
+The hardware layer defines a synchronous boundary for telemetry sources without
+adding a device or transport dependency. `HardwareAdapter<TReading>` has two
+operations: `getInfo()` reports stable adapter identity and current status, and
+`read()` returns the current domain-specific reading. Adapter status is one of
+`ready`, `degraded`, `faulted`, or `offline`.
+
+Battery, motor, IMU, and system readings correspond to the existing power,
+actuator, motion, compute, and communications fields in `TelemetrySnapshot`.
+`validateHardwareAdapter` checks the contract at runtime and returns structured
+errors and warnings rather than throwing for malformed third-party adapters.
+
+### Virtual adapters
+
+`VirtualBatteryAdapter`, `VirtualMotorAdapter`, `VirtualImuAdapter`, and
+`VirtualSystemAdapter` provide deterministic in-memory implementations. They
+accept explicit initial values, keep readings stable, expose status and reading
+setters, and return defensive copies. The battery adapter can also evolve
+percentage and voltage through optional per-second rates and explicit `step`
+calls. None uses implicit randomness or scheduling.
+
+### Adapter telemetry collector
+
+`AdapterTelemetryCollector` reads one adapter from each current domain and
+maps those values into the established `TelemetrySnapshot` contract:
+
+```text
+BatteryAdapter ─┐
+MotorAdapter ───┤
+ImuAdapter ─────┼─> AdapterTelemetryCollector ─> TelemetrySnapshot
+SystemAdapter ──┘
+```
+
+The caller supplies the robot ID, configured robot state, and collection
+timestamp. A faulted reading makes that snapshot's state `faulted`; when all
+readings are offline, its state is `offline`; otherwise the configured state
+is preserved. Inference does not overwrite the collector's configured state.
+The collector constructs a new snapshot and nested IMU vectors, so it does not
+mutate or expose adapter readings.
+
+This is an alternative telemetry source, not a `RobotSimulator` rewrite.
+Simulation and adapter-backed collection can evolve independently while
+downstream code continues to consume the same snapshot model.
+
+### Future real-device boundary and non-goals
+
+The interface prepares a stable integration point for future Raspberry Pi,
+Jetson, ESP32, ROS, motor-controller, battery, IMU, camera, and networked-robot
+implementations. Those implementations can translate device-specific data
+behind the adapter contracts without changing telemetry consumers.
+
+Version 0.6 deliberately includes no real hardware integration, GPIO access,
+serial communication, ROS integration, networking, timers, background loops,
+or asynchronous hardware polling. It has no device-driver dependency and does
+not claim to validate connectivity or physical sensor correctness.

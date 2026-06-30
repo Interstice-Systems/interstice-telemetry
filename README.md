@@ -23,6 +23,7 @@ npm run example:stream
 npm run example:replay
 npm run example:scenario
 npm run example:console
+npm run example:hardware
 ```
 
 Create and step a simulator:
@@ -253,18 +254,81 @@ Total Fault Events: 1
 This is intentionally not a web UI. Version 0.5 keeps reports portable,
 non-interactive, dependency-free, and straightforward to snapshot-test.
 
+## Hardware adapter interfaces
+
+Version 0.6 adds the software seam between telemetry consumers and future
+hardware sources. A small synchronous `HardwareAdapter<TReading>` contract
+exposes adapter identity, health status, and a current reading. Virtual battery,
+motor, IMU, and system adapters make that boundary testable without devices,
+drivers, middleware, or nondeterministic polling.
+
+Adapter seams matter in robotics because hardware availability and protocols
+vary across development machines and deployed robots. Consumers can depend on
+the stable `TelemetrySnapshot` contract while a future adapter handles the
+details of a Raspberry Pi, Jetson, ESP32, ROS node, motor controller, battery,
+IMU, camera, or networked robot.
+
+`AdapterTelemetryCollector` combines the four current reading domains into a
+snapshot without requiring or replacing `RobotSimulator`:
+
+```ts
+import {
+  AdapterTelemetryCollector,
+  VirtualBatteryAdapter,
+  VirtualImuAdapter,
+  VirtualMotorAdapter,
+  VirtualSystemAdapter,
+} from "interstice-telemetry";
+
+const battery = new VirtualBatteryAdapter({
+  percentage: 85,
+  voltage: 24.5,
+});
+const motor = new VirtualMotorAdapter({ leftRpm: 120, rightRpm: 118 });
+const imu = new VirtualImuAdapter();
+const system = new VirtualSystemAdapter({
+  cpuUsage: 35,
+  memoryUsage: 48,
+  signalStrength: -61,
+});
+
+const collector = new AdapterTelemetryCollector({
+  robotId: "rover-1",
+  battery,
+  motor,
+  imu,
+  system,
+  initialState: "active",
+});
+
+const snapshot = collector.collect("2026-01-01T00:00:00.000Z");
+console.log(snapshot);
+```
+
+Run validation, collection, fault inference, and console rendering end to end:
+
+```bash
+npm run example:hardware
+```
+
+**No real hardware is integrated in v0.6.** The adapters are contracts and
+deterministic virtual implementations only. There is no GPIO, serial, ROS,
+networking, timer, background loop, or asynchronous hardware polling.
+
 ## Current limitations
 
-Version 0.5 models one robot per simulator, scenario, and replay log, uses
-deliberately simple physics, and provides fixed-layout plain-text reports.
-It does not provide disk persistence, networking, ROS integration, background
-streaming, an interactive or web UI, hardware adapters, environment physics,
-or multi-robot scenarios.
+Version 0.6 models one robot per simulator, scenario, replay log, and adapter
+collector, uses deliberately simple physics, and provides fixed-layout
+plain-text reports. Hardware adapters are virtual and synchronous. The SDK
+does not provide real device integration, disk persistence, networking, ROS,
+background streaming, an interactive or web UI, environment physics, or
+multi-robot scenarios.
 
 ## Future direction
 
-The project will grow toward hardware adapter interfaces and multi-robot
-scenarios while keeping its simulation, replay, scenario, and reporting core
-deterministic and transport-independent. See [the roadmap](docs/Roadmap.md).
+The project will grow toward multi-robot scenarios, persistence/export, and
+adapter event streams while keeping its simulation, replay, scenario,
+reporting, and adapter core deterministic and transport-independent. See
+[the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).
