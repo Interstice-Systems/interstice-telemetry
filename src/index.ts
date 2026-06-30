@@ -1,3 +1,19 @@
+export type {
+  ConsoleReport,
+  EventTimelineOptions,
+} from "./console/consoleTypes.js";
+export { renderEventTimeline } from "./console/eventTimeline.js";
+export { renderFaultReport } from "./console/faultReport.js";
+export {
+  formatPercent,
+  formatRobotState,
+  formatTemperature,
+  formatTimestampMs,
+  formatVoltage,
+} from "./console/formatters.js";
+export { renderReplayReport } from "./console/replayReport.js";
+export { renderScenarioReport } from "./console/scenarioReport.js";
+export { renderTelemetrySnapshot } from "./console/telemetryReport.js";
 export { TELEMETRY_EVENT_TYPES } from "./events/eventTypes.js";
 export type {
   FaultInjectedPayload,

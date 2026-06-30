@@ -1,6 +1,6 @@
 {
   "name": "interstice-telemetry",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A deterministic, software-first robotics telemetry simulator.",
   "type": "module",
   "main": "dist/index.js",
@@ -23,7 +23,8 @@
     "example": "tsx examples/basic-simulation.ts",
     "example:stream": "tsx examples/event-stream.ts",
     "example:replay": "tsx examples/replay-log.ts",
-    "example:scenario": "tsx examples/scenario-profile.ts"
+    "example:scenario": "tsx examples/scenario-profile.ts",
+    "example:console": "tsx examples/console-dashboard.ts"
   },
   "engines": {
     "node": ">=20"

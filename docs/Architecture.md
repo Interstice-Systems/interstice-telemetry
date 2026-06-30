@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.4 is split into seven small layers.
+Interstice Telemetry v0.5 is split into eight small layers.
 
 ## Simulator
 
@@ -166,6 +166,44 @@ and string seeds are deterministic; string seeds are converted with a stable
 in-process hash before pseudo-random sampling. Equal-time faults retain their
 profile order. The runner does not mutate its input and uses no timers,
 asynchronous loops, networking, hardware, or file-system persistence.
+
+## Console and reporting layer
+
+The console layer is a read-only view over existing public models. It renders
+scenario results, telemetry snapshots, event arrays, fault events, and replay
+logs as fixed-layout plain text. It neither changes nor duplicates simulator,
+stream, replay, or scenario behavior.
+
+Each renderer is a pure function that returns a string. Library code does not
+write to standard output, detect terminal width, inspect environment state, or
+use colors and cursor control. This keeps the output usable in terminals, CI
+logs, text files managed by callers, and exact string assertions. The example
+script is the only console-specific component that prints output.
+
+Console formatting centralizes percentages, voltages, temperatures,
+millisecond values, robot states, and telemetry numbers. Timeline rendering
+retains the supplied event order, supports a deterministic leading-event
+limit, and can include compact payload summaries. Runtime payload checks let
+event and fault reports remain readable when optional or externally loaded
+metadata is absent.
+
+The reporting flow extends scenario execution without adding a new data model:
+
+```text
+ScenarioProfile
+  -> ScenarioRunner
+  -> ScenarioRunResult
+     -> final TelemetrySnapshot -> telemetry report
+     -> TelemetryEvent[]       -> timeline and fault reports
+     -> validated ReplayLog    -> replay report
+     -> summary                -> scenario report
+```
+
+Replay reports run the existing structured validator at render time, then
+show validation status, sequence bounds, and deterministic event-type counts.
+No report uses timers, background work, networking, file-system persistence,
+terminal capabilities, or mutable global state. Equal input and equal options
+therefore produce byte-for-byte equal output.
 
 ## No hardware dependencies
 

@@ -22,6 +22,7 @@ npm run example
 npm run example:stream
 npm run example:replay
 npm run example:scenario
+npm run example:console
 ```
 
 Create and step a simulator:
@@ -196,18 +197,74 @@ value. Run the complete scenario example with:
 npm run example:scenario
 ```
 
+## Terminal-first console reports
+
+Version 0.5 adds a plain-text reporting layer for scenario runs, telemetry
+snapshots, event timelines, faults, and replay logs. Terminal-first inspection
+makes a complete deterministic run easy to read in local development, CI logs,
+remote shells, and incident notes without requiring a browser or terminal UI
+framework.
+
+Renderers are pure functions: they return strings and never write to the
+console. Applications decide where the output goes.
+
+```ts
+import {
+  getBuiltInScenario,
+  renderEventTimeline,
+  renderScenarioReport,
+  runScenario,
+} from "interstice-telemetry";
+
+const scenario = getBuiltInScenario("motor-overheat");
+if (!scenario) {
+  throw new Error("Scenario not found");
+}
+
+const result = runScenario(scenario);
+console.log(renderScenarioReport(result));
+console.log(renderEventTimeline(result.events, { limit: 5 }));
+```
+
+Run the complete mission-control-style example:
+
+```bash
+npm run example:console
+```
+
+Sample output:
+
+```text
+INTERSTICE TELEMETRY — SCENARIO REPORT
+Scenario: Motor Overheat
+Robot: thermal-rover
+Duration: 10000 ms
+Steps: 10
+Events: 14
+Faults: 1
+Final State: faulted
+Replay Valid: yes
+
+FAULT SUMMARY
+Total Fault Events: 1
+- motor overheating at sequence #7, timestamp 5000
+```
+
+This is intentionally not a web UI. Version 0.5 keeps reports portable,
+non-interactive, dependency-free, and straightforward to snapshot-test.
+
 ## Current limitations
 
-Version 0.4 models one robot per simulator, scenario, and replay log, uses
-deliberately simple physics, and executes only state and fault timelines.
+Version 0.5 models one robot per simulator, scenario, and replay log, uses
+deliberately simple physics, and provides fixed-layout plain-text reports.
 It does not provide disk persistence, networking, ROS integration, background
-streaming, a web UI, hardware adapters, environment physics, or multi-robot
-scenarios.
+streaming, an interactive or web UI, hardware adapters, environment physics,
+or multi-robot scenarios.
 
 ## Future direction
 
-The project will grow toward operator tooling and hardware adapter interfaces
-while keeping its simulation, replay, and scenario core deterministic and
-transport-independent. See [the roadmap](docs/Roadmap.md).
+The project will grow toward hardware adapter interfaces and multi-robot
+scenarios while keeping its simulation, replay, scenario, and reporting core
+deterministic and transport-independent. See [the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).
