@@ -21,6 +21,7 @@ npm run lint
 npm run example
 npm run example:stream
 npm run example:replay
+npm run example:scenario
 ```
 
 Create and step a simulator:
@@ -145,17 +146,68 @@ emits all remaining events. Run the complete example with:
 npm run example:replay
 ```
 
+## Reusable scenario profiles
+
+Version 0.4 adds deterministic scenario profiles: reusable descriptions of a
+robot's identity, starting state, seed, duration, step interval, and scheduled
+faults. Profiles make patrols and failure cases consistent across development,
+regression tests, and demonstrations. A scenario run uses the existing
+simulator, event stream, and replay layers and returns its final snapshot,
+events, validated replay log, and a compact summary.
+
+The built-in profiles are:
+
+- `basic-patrol`
+- `battery-drain`
+- `motor-overheat`
+- `signal-loss`
+- `sensor-noise`
+- `stalled-motor`
+
+Run a built-in scenario and use its replay log:
+
+```ts
+import {
+  getBuiltInScenario,
+  runScenario,
+  ReplayPlayer,
+} from "interstice-telemetry";
+
+const scenario = getBuiltInScenario("motor-overheat");
+if (!scenario) {
+  throw new Error("Scenario not found");
+}
+
+const result = runScenario(scenario);
+const player = new ReplayPlayer(result.replayLog);
+
+console.log(result.summary);
+console.log(result.replayValidation);
+player.subscribe((event) => console.log(event.sequence, event.type));
+player.start();
+player.playAll();
+```
+
+Scenario execution is synchronous and manually stepped. Scheduled faults are
+injected once when elapsed scenario time reaches or crosses their `atMs`
+value. Run the complete scenario example with:
+
+```bash
+npm run example:scenario
+```
+
 ## Current limitations
 
-Version 0.3 models one robot per simulator and replay log, uses deliberately
-simple physics, and requires callers to step streams and players manually. It
-does not provide disk persistence, scenario profiles, networking, ROS
-integration, background streaming, a web UI, or hardware adapters.
+Version 0.4 models one robot per simulator, scenario, and replay log, uses
+deliberately simple physics, and executes only state and fault timelines.
+It does not provide disk persistence, networking, ROS integration, background
+streaming, a web UI, hardware adapters, environment physics, or multi-robot
+scenarios.
 
 ## Future direction
 
-The project will grow toward reusable scenarios, operator tooling, and hardware
-adapter interfaces while keeping its simulation and replay core deterministic
-and transport-independent. See [the roadmap](docs/Roadmap.md).
+The project will grow toward operator tooling and hardware adapter interfaces
+while keeping its simulation, replay, and scenario core deterministic and
+transport-independent. See [the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).

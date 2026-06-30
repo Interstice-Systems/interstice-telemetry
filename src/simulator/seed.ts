@@ -1,11 +1,22 @@
 export type RandomSource = () => number;
 
+const hashStringSeed = (seed: string): number => {
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return hash >>> 0;
+};
+
 /**
  * Creates a compact deterministic pseudo-random number generator.
  * This is intended for simulation repeatability, not cryptography.
  */
-export function createSeededRandom(seed: number): RandomSource {
-  let state = seed >>> 0;
+export function createSeededRandom(seed: number | string): RandomSource {
+  let state = typeof seed === "string" ? hashStringSeed(seed) : seed >>> 0;
 
   return () => {
     state += 0x6d2b79f5;

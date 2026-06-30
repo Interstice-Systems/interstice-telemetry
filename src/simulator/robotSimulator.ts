@@ -5,7 +5,7 @@ import { createSeededRandom, type RandomSource } from "./seed.js";
 
 export interface RobotSimulatorOptions {
   robotId?: string;
-  seed?: number;
+  seed?: number | string;
   startTime?: Date | string | number;
   initialState?: RobotState;
   faultInjector?: FaultInjector;

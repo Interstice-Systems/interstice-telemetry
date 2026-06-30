@@ -29,6 +29,24 @@ export type {
 } from "./replay/replayRecorder.js";
 export { validateReplayLog } from "./replay/replayValidator.js";
 export type { ReplayValidationResult } from "./replay/replayValidator.js";
+export {
+  BUILT_IN_SCENARIO_IDS,
+  BUILT_IN_SCENARIOS,
+  getBuiltInScenario,
+} from "./scenarios/builtInScenarios.js";
+export type { BuiltInScenarioId } from "./scenarios/builtInScenarios.js";
+export {
+  runScenario,
+  ScenarioRunner,
+} from "./scenarios/scenarioRunner.js";
+export type {
+  ScenarioProfile,
+  ScenarioRunResult,
+  ScenarioRunSummary,
+  ScenarioValidationResult,
+  ScheduledFault,
+} from "./scenarios/scenarioTypes.js";
+export { validateScenarioProfile } from "./scenarios/scenarioValidator.js";
 export { RobotSimulator } from "./simulator/robotSimulator.js";
 export type { RobotSimulatorOptions } from "./simulator/robotSimulator.js";
 export { createSeededRandom } from "./simulator/seed.js";

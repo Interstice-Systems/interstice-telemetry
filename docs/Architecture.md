@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.3 is split into six small layers.
+Interstice Telemetry v0.4 is split into seven small layers.
 
 ## Simulator
 
@@ -101,6 +101,71 @@ timers, asynchronous background loop, network access, or hardware dependency.
 Current replay non-goals are scheduling events according to timestamps,
 network transport, multi-robot logs, and direct disk persistence. Applications
 may store the serialized JSON using their own persistence layer.
+
+## Scenario layer
+
+The scenario layer composes the simulator, event stream, and replay layers into
+a small deterministic robotics test lab. It adds configuration and orchestration
+without changing the behavior or public APIs of those lower layers.
+
+### Scenario profile model
+
+A `ScenarioProfile` is a plain reusable data object with a stable ID,
+human-readable name and description, optional seed and robot configuration,
+positive duration and step interval, an optional scheduled-fault timeline, and
+optional caller metadata. Each `ScheduledFault` pairs an existing `Fault` with
+an elapsed scenario time in milliseconds. Profiles contain no functions,
+timers, persistence, or transport configuration.
+
+### Built-in scenarios
+
+The SDK ships with `basic-patrol`, `battery-drain`, `motor-overheat`,
+`signal-loss`, `sensor-noise`, and `stalled-motor`. Their IDs, seeds, robot
+identities, timing, and fault schedules are stable. `getBuiltInScenario`
+returns an independent copy so callers can customize a profile without
+changing the shared definitions.
+
+### Validator
+
+`validateScenarioProfile` returns structured `valid`, `errors`, and `warnings`
+fields. It verifies required identity fields, positive duration and step
+values, step-to-duration bounds, optional robot identity, fault timing bounds,
+and known fault types. `ScenarioRunner` validates before creating any
+simulation components and rejects invalid profiles.
+
+### Runner and replay flow
+
+`ScenarioRunner` copies the input profile, creates a `RobotSimulator`,
+`TelemetryStream`, and `ReplayRecorder`, then starts and advances them
+synchronously. Each iteration advances by `stepMs`, except for a final partial
+step when the duration is not evenly divisible. After elapsed time reaches or
+crosses a scheduled `atMs`, the runner injects that fault exactly once. Faults
+at zero are injected immediately after stream start.
+
+The resulting flow is:
+
+```text
+ScenarioProfile
+  -> validate
+  -> RobotSimulator
+  -> TelemetryStream
+  -> ReplayRecorder
+  -> ReplayLog
+  -> validateReplayLog
+```
+
+The result includes the copied profile, final snapshot, emitted events, replay
+log, both validation results, and summary counts. Replay metadata records the
+scenario ID and optional scenario metadata.
+
+### Deterministic scenario guarantees
+
+Given an equal profile, a run produces equal snapshots, event IDs, sequences,
+timestamps, payloads, replay logs, validation results, and summaries. Numeric
+and string seeds are deterministic; string seeds are converted with a stable
+in-process hash before pseudo-random sampling. Equal-time faults retain their
+profile order. The runner does not mutate its input and uses no timers,
+asynchronous loops, networking, hardware, or file-system persistence.
 
 ## No hardware dependencies
 

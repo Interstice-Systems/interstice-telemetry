@@ -10,9 +10,11 @@ lifecycle control, subscriptions, fault events, and robot state-change events.
 Added event recording, a versioned replay log model, structured validation,
 JSON serialization and deserialization, and synchronous deterministic playback.
 
-## v0.4 — Scenario profiles
+## v0.4 — Scenario profiles (completed)
 
-Define reusable robot, environment, mission, and fault-timeline profiles.
+Added reusable deterministic scenario profiles, built-in patrol and fault
+situations, structured validation, synchronous scenario execution, and replay
+log integration.
 
 ## v0.5 — Dashboard and console
 
