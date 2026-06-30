@@ -1,9 +1,9 @@
 # Roadmap
 
-## v0.2 — Event stream
+## v0.2 — Event stream (completed)
 
-Add interval-driven and iterable telemetry event streams with explicit lifecycle
-control.
+Added deterministic, manually stepped telemetry event streams with explicit
+lifecycle control, subscriptions, fault events, and robot state-change events.
 
 ## v0.3 — Replay logs
 
