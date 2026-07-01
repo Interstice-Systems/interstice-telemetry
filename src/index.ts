@@ -1,3 +1,49 @@
+export {
+  createArtifactMetadataDocument,
+  createExperimentArtifactBundle,
+} from "./artifacts/artifactBundle.js";
+export { readExperimentArtifacts } from "./artifacts/artifactReader.js";
+export {
+  EXPERIMENT_ARTIFACT_FILE_KINDS,
+  EXPERIMENT_ARTIFACT_FORMATS,
+  EXPERIMENT_ARTIFACT_KINDS,
+  EXPERIMENT_ARTIFACT_VERSION,
+} from "./artifacts/artifactTypes.js";
+export type {
+  ArtifactExportOptions,
+  ArtifactFileContents,
+  ArtifactWriteOptions,
+  ArtifactWriteResult,
+  ExperimentArtifactBundle,
+  ExperimentArtifactBundleInput,
+  ExperimentArtifactFile,
+  ExperimentArtifactFileKind,
+  ExperimentArtifactFormat,
+  ExperimentArtifactKind,
+  ExperimentArtifactMetadataDocument,
+  ExperimentArtifactValidationResult,
+  ExperimentMetadata,
+  LoadedExperimentArtifactFile,
+  LoadedExperimentArtifacts,
+  TelemetrySummary,
+} from "./artifacts/artifactTypes.js";
+export {
+  DEFAULT_ARTIFACT_ROOT,
+  sanitizeArtifactPathSegment,
+  writeExperimentArtifacts,
+} from "./artifacts/artifactWriter.js";
+export {
+  isSafeRelativeArtifactPath,
+  validateExperimentArtifactBundle,
+} from "./artifacts/artifactValidator.js";
+export {
+  createFleetTelemetrySummary,
+  exportFleetRunArtifacts,
+} from "./artifacts/fleetArtifactExporter.js";
+export {
+  createScenarioTelemetrySummary,
+  exportScenarioRunArtifacts,
+} from "./artifacts/scenarioArtifactExporter.js";
 export type {
   ConsoleReport,
   EventTimelineOptions,

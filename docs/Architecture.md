@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.7 is split into ten small layers.
+Interstice Telemetry v0.8 is split into eleven small layers.
 
 ## Simulator
 
@@ -99,10 +99,10 @@ calls, subscribers observe the same values in the same order. Playback has no
 timers, asynchronous background loop, network access, or hardware dependency.
 
 Current replay non-goals are scheduling events according to timestamps,
-network transport, one globally sequenced multi-robot event stream, and direct
-disk persistence. The fleet layer can wrap independent robot logs without
-changing this contract. Applications may store serialized JSON using their own
-persistence layer.
+network transport, and one globally sequenced multi-robot event stream. The
+fleet layer can wrap independent robot logs without changing this contract,
+and the artifact layer can persist those logs without adding file-system
+behavior to replay itself.
 
 ## Scenario layer
 
@@ -167,7 +167,8 @@ timestamps, payloads, replay logs, validation results, and summaries. Numeric
 and string seeds are deterministic; string seeds are converted with a stable
 in-process hash before pseudo-random sampling. Equal-time faults retain their
 profile order. The runner does not mutate its input and uses no timers,
-asynchronous loops, networking, hardware, or file-system persistence.
+asynchronous loops, networking, hardware, or direct file-system persistence.
+Exporters compose its result with the separate artifact layer.
 
 ## Console and reporting layer
 
@@ -267,6 +268,69 @@ The fleet layer is a synchronous simulation coordinator only. It includes no
 networking, distributed consensus, ROS integration, real robot fleet control,
 hardware discovery, global clock synchronization, timers, background loops, or
 asynchronous polling.
+
+## Experiment artifact layer
+
+The artifact layer is a local-filesystem boundary around completed scenario and
+fleet results. It does not change simulation, replay, validation, or report
+generation. Its directory-oriented format favors direct inspection and stable
+robotics QA inputs over a storage abstraction.
+
+### Bundle model and index
+
+`ExperimentArtifactBundle` records a format version, experiment ID, ISO
+creation time, scenario-or-fleet kind, descriptive metadata, robot IDs, and an
+ordered file manifest. Every declared file has a safe relative path, known
+semantic kind, and either JSON or text format. The same bundle is written to
+`artifact-index.json`; `metadata.json` carries the experiment identity and
+metadata needed to discover an artifact directory when the index is absent.
+
+`validateExperimentArtifactBundle` returns structured errors and warnings. It
+checks required identity and metadata fields, non-empty robot IDs and file
+lists, known kinds and formats, duplicate paths, and relative paths that cannot
+escape the experiment directory.
+
+### Writer and reader
+
+`writeExperimentArtifacts` sanitizes the experiment ID for its folder name,
+creates nested directories, formats JSON with two-space indentation, and
+refuses to replace an existing experiment by default. Callers must explicitly
+set `overwrite: true` to replace one. The default root is `artifacts`, and a
+different local root can be supplied per write.
+
+`readExperimentArtifacts` parses JSON as data only and reads text verbatim; it
+never executes or evaluates content. It loads the metadata and index, returns
+the declared file contents and bundle validation, and reports missing files as
+warnings. If no index exists, it recursively discovers only recognized JSON
+and report paths and reconstructs a bundle from `metadata.json`.
+
+### Scenario and fleet exporters
+
+`exportScenarioRunArtifacts` writes the scenario profile, replay log, scenario
+and replay validations, telemetry summary, final telemetry report, event
+timeline, fault report, scenario report, and replay report.
+
+`exportFleetRunArtifacts` writes the fleet profile, fleet replay wrapper,
+aggregate validations and reports, then writes each robot's replay log,
+validations, and five existing single-robot reports below a sanitized robot
+folder. Robot entries and IDs retain deterministic sorted order.
+
+Both exporters default the artifact creation time to the corresponding replay
+creation time and reuse existing pure renderers. Equal run results and export
+options therefore produce equal file contents.
+
+### Telemetry summaries and future CI/CD
+
+The compact `TelemetrySummary` contains sorted robot IDs, total event and fault
+counts, final states keyed by robot ID, and elapsed duration. This gives a
+future robot QA job a small machine-readable result while replay logs preserve
+full evidence and text reports provide human-readable context.
+
+Artifacts are intentionally limited to local directories, JSON, and text.
+There is no database, cloud storage, network transport, compression, binary
+format, timer, or background process. This stable handoff is the basis for
+future CI/CD systems to run deterministic experiments, retain evidence, compare
+summaries, and gate changes without coupling the SDK to a CI vendor.
 
 ## Hardware adapter layer
 

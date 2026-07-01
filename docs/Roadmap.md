@@ -34,18 +34,30 @@ validation, sorted synchronous fleet execution, per-robot results, fleet replay
 wrappers, aggregate summaries, deterministic console reports, and an end-to-end
 example.
 
-## v0.8 — Persistence and export layer
+## v0.8 — Experiment artifacts and persistence (completed)
 
-Add explicit adapters for storing and exporting replay logs and reports without
-coupling the core SDK to a database or file-system policy.
+Added versioned experiment bundle models, safe local-directory persistence,
+index-aware loading and discovery, structured validation, scenario and fleet
+exporters, compact telemetry summaries, deterministic reports, and an
+end-to-end read-back example.
 
 ## v0.9 — Adapter event streams
 
 Add explicit, deterministic event production around adapter-backed telemetry
 while keeping scheduling, transport, and real hardware polling out of the core.
 
+## v0.10 — Global fleet event timeline
+
+Add a deterministic cross-robot event ordering and timeline view while
+preserving each robot's existing replay sequence.
+
+## v0.11 — Anomaly and diagnostics reports
+
+Add deterministic anomaly summaries and diagnostic reports over telemetry,
+events, replay logs, and experiment artifacts.
+
 ## v1.0 — Robotics telemetry SDK
 
 Stabilize the public API for simulation, event processing, replay, scenarios,
-console reporting, persistence adapters, adapter event streams, and
-hardware-backed telemetry.
+console reporting, experiment artifacts, adapter event streams, global fleet
+timelines, diagnostics, and hardware-backed telemetry.

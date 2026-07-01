@@ -25,6 +25,7 @@ npm run example:scenario
 npm run example:console
 npm run example:hardware
 npm run example:fleet
+npm run example:artifacts
 ```
 
 Create and step a simulator:
@@ -365,20 +366,92 @@ Version 0.7 is a deterministic fleet testbed, not a distributed robot-control
 system. It adds no networking, ROS, real hardware fleet control, timers,
 background loops, or asynchronous polling.
 
+## Experiment artifacts and persistence
+
+Version 0.8 packages a complete scenario or fleet run into a deterministic,
+inspectable directory. Each experiment includes its scenario definition,
+replay data, structured validation, compact telemetry summary, plain-text
+reports, metadata, and a versioned `artifact-index.json`.
+
+Persistence matters for robotics QA because a failure report is useful only
+when the exact configuration and event history that produced it remain
+available. Artifact bundles give local development and future CI/CD jobs one
+portable unit to archive, compare, validate, and replay.
+
+```ts
+import {
+  exportFleetRunArtifacts,
+  getBuiltInFleetScenario,
+  readExperimentArtifacts,
+  runFleetScenario,
+} from "interstice-telemetry";
+
+const scenario = getBuiltInFleetScenario("mixed-fault-fleet");
+if (!scenario) {
+  throw new Error("Fleet scenario not found");
+}
+
+const written = exportFleetRunArtifacts(runFleetScenario(scenario), {
+  rootDir: "artifacts",
+});
+const loaded = readExperimentArtifacts(written.experimentPath);
+
+console.log(written.experimentPath);
+console.log(loaded.metadata);
+```
+
+A fleet export has this layout:
+
+```text
+artifacts/mixed-fault-fleet/
+  artifact-index.json
+  metadata.json
+  fleet-scenario.json
+  fleet-replay-log.json
+  validation.json
+  telemetry-summary.json
+  reports/
+    fleet-report.txt
+    fleet-replay-report.txt
+  robots/
+    robot-alpha/
+      replay-log.json
+      validation.json
+      reports/
+        scenario-report.txt
+        telemetry-report.txt
+        event-timeline.txt
+        fault-report.txt
+        replay-report.txt
+```
+
+Run the complete export, validation, file listing, and read-back example:
+
+```bash
+npm run example:artifacts
+```
+
+Artifact persistence is local-filesystem only. It adds no database, cloud
+storage, networking, compression, or binary format. JSON is pretty-printed and
+reports reuse the deterministic console renderers, making bundles suitable for
+reproducible experiments and source-controlled or CI-managed robot QA.
+
 ## Current limitations
 
-Version 0.7 still models one robot per simulator, event stream, replay log, and
+Version 0.8 still models one robot per simulator, event stream, replay log, and
 adapter collector; fleet support coordinates those existing units through a
 synchronous wrapper. Event sequence numbers remain per robot rather than
 global. Physics is deliberately simple, reports use fixed-layout plain text,
-and hardware adapters are virtual. The SDK does not provide real device or
-fleet control, disk persistence, networking, ROS, background streaming, an
-interactive or web UI, or environment physics.
+and hardware adapters are virtual. Persistence is local and uncompressed. The
+SDK does not provide real device or fleet control, databases, cloud storage,
+networking, ROS, background streaming, an interactive or web UI, or environment
+physics.
 
 ## Future direction
 
-The project will grow toward persistence/export and adapter event streams while
-keeping its simulation, replay, scenario, fleet, reporting, and adapter core
-deterministic and transport-independent. See [the roadmap](docs/Roadmap.md).
+The project will grow toward adapter event streams, a global fleet event
+timeline, and diagnostics while keeping its simulation, replay, scenario,
+fleet, reporting, artifact, and adapter core deterministic and
+transport-independent. See [the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).
