@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.8 is split into eleven small layers.
+Interstice Telemetry v0.9 is split into twelve small layers.
 
 ## Simulator
 
@@ -377,6 +377,75 @@ This is an alternative telemetry source, not a `RobotSimulator` rewrite.
 Simulation and adapter-backed collection can evolve independently while
 downstream code continues to consume the same snapshot model.
 
+## Adapter event stream layer
+
+`AdapterTelemetryStream` connects the hardware adapter boundary to the shared
+event pipeline without duplicating telemetry collection or replay behavior. Its
+constructor accepts the same four domain adapters and robot configuration as
+`AdapterTelemetryCollector`, then delegates every emitted snapshot to an
+internal collector.
+
+```text
+Virtual Hardware Adapters
+  -> AdapterTelemetryStream
+     -> AdapterTelemetryCollector -> TelemetrySnapshot
+     -> TelemetryEvent
+        -> ReplayRecorder
+        -> ReplayLog
+        -> event timeline and replay reports
+        -> experiment replay-log and report artifacts
+```
+
+### Lifecycle and logical clock
+
+The stream starts stopped. `start` and `stop` are idempotent and emit adapter
+lifecycle events only when the state changes. `step(deltaMs)` validates a
+positive finite duration, does nothing while stopped, and advances only a
+logical clock initialized by `startTime` (the Unix epoch by default). There is
+no wall-clock read, timer, asynchronous queue, or background polling.
+
+Any adapter implementing the existing optional
+`SteppableHardwareAdapter<TReading>` contract is stepped before observation.
+This allows deterministic virtual behavior such as battery drain while leaving
+non-steppable adapters unchanged.
+
+### Transition detection and ordering
+
+Starting establishes status and reading baselines. Each running step observes
+adapters in the fixed domain order battery, motor, IMU, and system. For each
+adapter it emits a status transition when the status differs from the previous
+running observation. With `emitReadingChanges: true`, it then emits a reading
+transition when non-status reading data differs. Reading events are disabled by
+default to keep high-volume data opt-in.
+
+The complete ordering for one step is:
+
+```text
+step steppable adapters in domain order
+  -> advance logical clock
+  -> [status change, optional reading change] per adapter in domain order
+  -> collect and emit adapter telemetry snapshot
+```
+
+Every event receives the current logical-clock timestamp, the collector's robot
+ID, a strictly increasing per-stream sequence, and a deterministic
+`<robotId>:<sequence>` ID. Status transitions therefore produce exactly one
+event per observed transition, and equal configuration plus equal method calls
+produce equal events.
+
+### Replay, reports, and artifacts
+
+Adapter event names are part of the shared `TelemetryEventType` vocabulary.
+The existing recorder preserves them, the replay validator recognizes them,
+and the replay player returns them unchanged. The event timeline summarizes
+adapter status, reading, and snapshot payloads; the replay report includes
+adapter event counts.
+
+Because adapter recordings remain normal `ReplayLog` values, the existing
+artifact writer can persist them using the established `replay-log` file kind
+alongside timeline and replay report text. No adapter-specific replay,
+renderer, or artifact format is introduced.
+
 ### Future real-device boundary and non-goals
 
 The interface prepares a stable integration point for future Raspberry Pi,
@@ -384,7 +453,7 @@ Jetson, ESP32, ROS, motor-controller, battery, IMU, camera, and networked-robot
 implementations. Those implementations can translate device-specific data
 behind the adapter contracts without changing telemetry consumers.
 
-Version 0.6 deliberately includes no real hardware integration, GPIO access,
+Version 0.9 deliberately includes no real hardware integration, GPIO access,
 serial communication, ROS integration, networking, timers, background loops,
 or asynchronous hardware polling. It has no device-driver dependency and does
 not claim to validate connectivity or physical sensor correctness.

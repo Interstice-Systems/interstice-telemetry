@@ -111,6 +111,22 @@ export type {
   AdapterTelemetryCollectorOptions,
   TelemetryCollectionTimestamp,
 } from "./hardware/adapterTelemetryCollector.js";
+export { ADAPTER_EVENT_TYPES } from "./hardware/adapterEventTypes.js";
+export type {
+  AdapterEventPayload,
+  AdapterEventType,
+  AdapterReadingChangedPayload,
+  AdapterStatusChangedPayload,
+  AdapterStreamLifecyclePayload,
+  AdapterTelemetryEvent,
+  AdapterTelemetryEventHandler,
+  AdapterTelemetrySnapshotPayload,
+} from "./hardware/adapterEventTypes.js";
+export { AdapterTelemetryStream } from "./hardware/adapterTelemetryStream.js";
+export type {
+  AdapterTelemetryStreamOptions,
+  AdapterTelemetryStreamStatus,
+} from "./hardware/adapterTelemetryStream.js";
 export { validateHardwareAdapter } from "./hardware/adapterValidator.js";
 export type {
   HardwareAdapter,

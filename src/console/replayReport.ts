@@ -9,6 +9,11 @@ const EVENT_TYPE_ORDER: readonly TelemetryEventType[] = [
   "fault.injected",
   "state.changed",
   "stream.stopped",
+  "adapter.stream.started",
+  "adapter.status.changed",
+  "adapter.reading.changed",
+  "adapter.telemetry.snapshot",
+  "adapter.stream.stopped",
 ];
 
 export const renderReplayReport = (log: ReplayLog): ConsoleReport => {

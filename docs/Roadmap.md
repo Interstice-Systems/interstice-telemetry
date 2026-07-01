@@ -41,10 +41,13 @@ index-aware loading and discovery, structured validation, scenario and fleet
 exporters, compact telemetry summaries, deterministic reports, and an
 end-to-end read-back example.
 
-## v0.9 — Adapter event streams
+## v0.9 — Adapter event streams (completed)
 
-Add explicit, deterministic event production around adapter-backed telemetry
-while keeping scheduling, transport, and real hardware polling out of the core.
+Added explicit adapter stream lifecycle, deterministic adapter-backed snapshot
+events, status and opt-in reading transition detection, replay validation and
+playback compatibility, report rendering, artifact-compatible replay logs, and
+an end-to-end example while keeping scheduling, transport, and real hardware
+polling out of the core.
 
 ## v0.10 — Global fleet event timeline
 

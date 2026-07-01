@@ -26,6 +26,7 @@ npm run example:console
 npm run example:hardware
 npm run example:fleet
 npm run example:artifacts
+npm run example:adapter-stream
 ```
 
 Create and step a simulator:
@@ -436,22 +437,93 @@ storage, networking, compression, or binary format. JSON is pretty-printed and
 reports reuse the deterministic console renderers, making bundles suitable for
 reproducible experiments and source-controlled or CI-managed robot QA.
 
+## Deterministic adapter event streams
+
+Version 0.9 connects virtual hardware adapters to the existing event, replay,
+reporting, and artifact contracts. `AdapterTelemetryStream` owns a logical
+clock and uses `AdapterTelemetryCollector` to produce the established
+`TelemetrySnapshot` model. It never polls in the background: callers explicitly
+start, step, and stop it.
+
+```ts
+import {
+  AdapterTelemetryStream,
+  ReplayRecorder,
+  VirtualBatteryAdapter,
+  VirtualImuAdapter,
+  VirtualMotorAdapter,
+  VirtualSystemAdapter,
+} from "interstice-telemetry";
+
+const motor = new VirtualMotorAdapter({ id: "drive-motors" });
+const stream = new AdapterTelemetryStream({
+  robotId: "rover-1",
+  battery: new VirtualBatteryAdapter(),
+  motor,
+  imu: new VirtualImuAdapter(),
+  system: new VirtualSystemAdapter(),
+  initialState: "active",
+  startTime: "2026-01-01T00:00:00.000Z",
+  emitReadingChanges: true,
+});
+const recorder = new ReplayRecorder();
+const unsubscribe = stream.subscribe(recorder.record);
+
+recorder.start();
+stream.start();
+stream.step(1_000);
+motor.setStatus("degraded");
+stream.step(1_000);
+stream.stop();
+recorder.stop();
+unsubscribe();
+
+const replayLog = recorder.toLog();
+```
+
+Adapter streams emit:
+
+- `adapter.stream.started`
+- `adapter.stream.stopped`
+- `adapter.telemetry.snapshot`
+- `adapter.status.changed`
+- `adapter.reading.changed`
+
+Status transitions are emitted once on the first step that observes the new
+status. Reading transitions are opt-in with `emitReadingChanges` and ignore the
+reading's status field because status has its own event. Within a step, adapters
+are checked in battery, motor, IMU, and system order; each status event precedes
+that adapter's reading event, and the snapshot is last.
+
+The events use the shared `TelemetryEvent` contract, so `ReplayRecorder`,
+`ReplayPlayer`, `validateReplayLog`, `renderEventTimeline`, and
+`renderReplayReport` work without an adapter-specific replay format. Replay
+logs and generated text reports can be stored by the existing experiment
+artifact pipeline as normal replay-log and report artifacts.
+
+Run the end-to-end adapter, replay, and reporting example:
+
+```bash
+npm run example:adapter-stream
+```
+
 ## Current limitations
 
-Version 0.8 still models one robot per simulator, event stream, replay log, and
-adapter collector; fleet support coordinates those existing units through a
-synchronous wrapper. Event sequence numbers remain per robot rather than
-global. Physics is deliberately simple, reports use fixed-layout plain text,
-and hardware adapters are virtual. Persistence is local and uncompressed. The
-SDK does not provide real device or fleet control, databases, cloud storage,
-networking, ROS, background streaming, an interactive or web UI, or environment
-physics.
+Version 0.9 still models one robot per simulator, event stream, replay log, and
+adapter stream; fleet support coordinates simulator-backed units through a
+synchronous wrapper. Event sequence numbers remain per stream rather than
+global. Adapter status and reading changes are observed only on explicit
+steps. Physics is deliberately simple, reports use fixed-layout plain text,
+and hardware adapters are virtual. Persistence is local and uncompressed.
+The SDK does not provide real device or fleet control, databases, cloud
+storage, networking, ROS, background streaming, an interactive or web UI, or
+environment physics.
 
 ## Future direction
 
-The project will grow toward adapter event streams, a global fleet event
-timeline, and diagnostics while keeping its simulation, replay, scenario,
-fleet, reporting, artifact, and adapter core deterministic and
-transport-independent. See [the roadmap](docs/Roadmap.md).
+The project will grow toward a global fleet event timeline and diagnostics
+while keeping its simulation, replay, scenario, fleet, reporting, artifact,
+and adapter core deterministic and transport-independent. See
+[the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).

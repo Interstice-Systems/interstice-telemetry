@@ -1,4 +1,5 @@
 import type { Fault } from "../faults/faultTypes.js";
+import { ADAPTER_EVENT_TYPES } from "../hardware/adapterEventTypes.js";
 import type {
   RobotState,
   TelemetrySnapshot,
@@ -10,6 +11,7 @@ export const TELEMETRY_EVENT_TYPES = [
   "telemetry.snapshot",
   "fault.injected",
   "state.changed",
+  ...ADAPTER_EVENT_TYPES,
 ] as const;
 
 export type TelemetryEventType = (typeof TELEMETRY_EVENT_TYPES)[number];

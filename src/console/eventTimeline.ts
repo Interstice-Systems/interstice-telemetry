@@ -28,11 +28,42 @@ const summarizePayload = (event: TelemetryEvent): string | undefined => {
   }
 
   if (
-    event.type === "telemetry.snapshot" &&
+    (event.type === "telemetry.snapshot" ||
+      event.type === "adapter.telemetry.snapshot") &&
     isRecord(event.payload.snapshot) &&
     typeof event.payload.snapshot.state === "string"
   ) {
     return `state=${event.payload.snapshot.state}`;
+  }
+
+  if (event.type === "adapter.status.changed") {
+    const adapter = event.payload.adapter;
+    const adapterId = event.payload.adapterId;
+    const previous = event.payload.previousStatus;
+    const current = event.payload.currentStatus;
+    const id =
+      typeof adapterId === "string"
+        ? adapterId
+        : isRecord(adapter) && typeof adapter.id === "string"
+          ? adapter.id
+          : undefined;
+    return id !== undefined &&
+      typeof previous === "string" &&
+      typeof current === "string"
+      ? `${id}: ${previous} -> ${current}`
+      : undefined;
+  }
+
+  if (event.type === "adapter.reading.changed") {
+    const adapter = event.payload.adapter;
+    const adapterId = event.payload.adapterId;
+    const id =
+      typeof adapterId === "string"
+        ? adapterId
+        : isRecord(adapter) && typeof adapter.id === "string"
+          ? adapter.id
+          : undefined;
+    return id === undefined ? undefined : `adapter=${id}`;
   }
 
   const status = event.payload.status;
@@ -60,8 +91,8 @@ export const renderEventTimeline = (
     limit === undefined ? events : events.slice(0, limit);
   const lines = visibleEvents.map((event) => {
     const sequence = `#${event.sequence}`.padEnd(5);
-    const type = event.type.padEnd(20);
-    const timestamp = `t=${event.timestamp}`.padEnd(14);
+    const type = event.type.padEnd(28);
+    const timestamp = `t=${event.timestamp}`.padEnd(18);
     const base = `${sequence}${type}${timestamp}robot=${event.robotId}`;
     const summary = options.includePayloadSummary
       ? summarizePayload(event)
