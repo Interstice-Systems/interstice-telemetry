@@ -49,12 +49,18 @@ playback compatibility, report rendering, artifact-compatible replay logs, and
 an end-to-end example while keeping scheduling, transport, and real hardware
 polling out of the core.
 
-## v0.10 — Global fleet event timeline
+## v0.10 — Deterministic clock system (completed)
 
-Add a deterministic cross-robot event ordering and timeline view while
-preserving each robot's existing replay sequence.
+Added simulation, logical, replay, and fleet clocks; structured clock
+validation; optional stream, runner, replay, and experiment metadata
+integration; and a manually stepped end-to-end example.
 
-## v0.11 — Anomaly and diagnostics reports
+## v0.11 — Global fleet event timeline
+
+Add deterministic cross-robot event ordering and a timeline view on the shared
+fleet clock while preserving each robot's existing replay sequence.
+
+## v0.12 — Anomaly and diagnostics reports
 
 Add deterministic anomaly summaries and diagnostic reports over telemetry,
 events, replay logs, and experiment artifacts.

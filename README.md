@@ -27,6 +27,7 @@ npm run example:hardware
 npm run example:fleet
 npm run example:artifacts
 npm run example:adapter-stream
+npm run example:clock
 ```
 
 Create and step a simulator:
@@ -47,6 +48,55 @@ console.log(robot.step(1_000));
 
 The same seed, starting time, state, and sequence of operations produce the
 same snapshots. See `examples/basic-simulation.ts` for a runnable example.
+
+## Deterministic clocks
+
+Version 0.10 makes simulation time explicit and reusable across SDK layers.
+Every clock is synchronous and advances only through `step`, `tick`, or replay
+navigation calls:
+
+- `SimulationClock` tracks elapsed simulation time.
+- `LogicalClock` provides deterministic ticks for event ordering.
+- `ReplayClock` follows the immutable timestamps of recorded events.
+- `FleetClock` tracks one global elapsed time for a fleet run.
+
+```ts
+import {
+  RobotSimulator,
+  SimulationClock,
+  TelemetryStream,
+  validateClock,
+} from "interstice-telemetry";
+
+const clock = new SimulationClock({
+  id: "experiment-clock",
+  startTimeMs: 0,
+});
+const stream = new TelemetryStream(new RobotSimulator(), clock);
+
+stream.start();
+stream.step(100);
+stream.step(250);
+
+console.log(clock.now()); // 350
+console.log(clock.getInfo());
+console.log(validateClock(clock));
+```
+
+Clocks are optional in `TelemetryStream`, `AdapterTelemetryStream`,
+`ScenarioRunner`, `FleetScenarioRunner`, and `ReplayPlayer`, so existing
+behavior remains the default. A clock's `ClockInfo` can also be stored in
+experiment metadata to identify the timeline used for a run. Fleet clocks
+establish the shared time basis needed for a future cross-robot event
+timeline, without introducing a global event sequence in this release.
+
+These clocks are not real-time schedulers. They do not read wall time, wait,
+create timers, start asynchronous loops, or synchronize distributed systems.
+Run the complete example with:
+
+```bash
+npm run example:clock
+```
 
 ## Deterministic event streams
 

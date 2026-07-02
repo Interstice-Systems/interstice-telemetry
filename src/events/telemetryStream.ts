@@ -1,3 +1,4 @@
+import type { DeterministicClock } from "../clock/clockTypes.js";
 import type { Fault } from "../faults/faultTypes.js";
 import type { RobotSimulator } from "../simulator/robotSimulator.js";
 import type { RobotState, TelemetrySnapshot } from "../types.js";
@@ -19,7 +20,10 @@ export class TelemetryStream {
   private sequence = 0;
   private lastObservedState: RobotState;
 
-  constructor(private readonly simulator: RobotSimulator) {
+  constructor(
+    private readonly simulator: RobotSimulator,
+    private readonly clock?: DeterministicClock,
+  ) {
     this.lastObservedState = simulator.getSnapshot().state;
   }
 
@@ -52,6 +56,7 @@ export class TelemetryStream {
     }
 
     const snapshot = this.simulator.step(deltaMs);
+    this.clock?.step(deltaMs);
 
     if (snapshot.state !== this.lastObservedState) {
       const payload: StateChangedPayload = {
@@ -102,7 +107,7 @@ export class TelemetryStream {
     const event: TelemetryEvent = {
       id: `${this.simulator.robotId}:${sequence}`,
       type,
-      timestamp: Date.parse(snapshot.timestamp),
+      timestamp: this.clock?.now() ?? Date.parse(snapshot.timestamp),
       robotId: this.simulator.robotId,
       sequence,
       payload,

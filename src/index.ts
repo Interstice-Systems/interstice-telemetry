@@ -1,3 +1,20 @@
+export { validateClock } from "./clock/clockValidator.js";
+export { FleetClock } from "./clock/fleetClock.js";
+export type { FleetClockOptions } from "./clock/fleetClock.js";
+export { LogicalClock } from "./clock/logicalClock.js";
+export type { LogicalClockOptions } from "./clock/logicalClock.js";
+export { ReplayClock } from "./clock/replayClock.js";
+export type { ReplayClockOptions } from "./clock/replayClock.js";
+export { SimulationClock } from "./clock/simulationClock.js";
+export type { SimulationClockOptions } from "./clock/simulationClock.js";
+export { CLOCK_KINDS } from "./clock/clockTypes.js";
+export type {
+  ClockInfo,
+  ClockKind,
+  ClockOptions,
+  ClockValidationResult,
+  DeterministicClock,
+} from "./clock/clockTypes.js";
 export {
   createArtifactMetadataDocument,
   createExperimentArtifactBundle,

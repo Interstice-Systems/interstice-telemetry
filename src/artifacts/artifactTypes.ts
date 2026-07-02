@@ -1,3 +1,4 @@
+import type { ClockInfo } from "../clock/clockTypes.js";
 import type { RobotState } from "../types.js";
 
 export const EXPERIMENT_ARTIFACT_VERSION = "0.8.0";
@@ -37,6 +38,7 @@ export interface ExperimentMetadata {
   robotIds: string[];
   tags?: string[];
   source?: string;
+  clock?: ClockInfo;
 }
 
 export interface ExperimentArtifactFile {

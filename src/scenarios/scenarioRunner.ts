@@ -1,3 +1,4 @@
+import type { DeterministicClock } from "../clock/clockTypes.js";
 import { ReplayRecorder } from "../replay/replayRecorder.js";
 import { validateReplayLog } from "../replay/replayValidator.js";
 import { RobotSimulator } from "../simulator/robotSimulator.js";
@@ -11,7 +12,10 @@ import { validateScenarioProfile } from "./scenarioValidator.js";
 export class ScenarioRunner {
   private readonly profile: ScenarioProfile;
 
-  constructor(profile: ScenarioProfile) {
+  constructor(
+    profile: ScenarioProfile,
+    private readonly clock?: DeterministicClock,
+  ) {
     this.profile = structuredClone(profile);
   }
 
@@ -29,9 +33,9 @@ export class ScenarioRunner {
       robotId: scenario.robotId ?? `scenario-${scenario.id}`,
       seed: scenario.seed ?? 1,
       initialState: scenario.initialState ?? "idle",
-      startTime: 0,
+      startTime: this.clock?.now() ?? 0,
     });
-    const stream = new TelemetryStream(simulator);
+    const stream = new TelemetryStream(simulator, this.clock);
     const recorder = new ReplayRecorder({
       robotId: simulator.robotId,
       createdAt: 0,
@@ -110,5 +114,7 @@ export class ScenarioRunner {
   }
 }
 
-export const runScenario = (profile: ScenarioProfile): ScenarioRunResult =>
-  new ScenarioRunner(profile).run();
+export const runScenario = (
+  profile: ScenarioProfile,
+  clock?: DeterministicClock,
+): ScenarioRunResult => new ScenarioRunner(profile, clock).run();

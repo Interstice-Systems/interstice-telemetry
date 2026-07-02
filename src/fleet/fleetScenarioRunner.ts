@@ -1,3 +1,4 @@
+import type { DeterministicClock } from "../clock/clockTypes.js";
 import { TelemetryStream } from "../events/telemetryStream.js";
 import { ReplayRecorder } from "../replay/replayRecorder.js";
 import { validateReplayLog } from "../replay/replayValidator.js";
@@ -42,6 +43,7 @@ const compareRobotIds = (
 const buildRuntime = (
   robot: FleetRobotProfile,
   fleet: FleetScenarioProfile,
+  startTime: number,
 ): RobotRuntime => {
   const scenario: ScenarioProfile = {
     ...structuredClone(robot.scenario),
@@ -53,7 +55,7 @@ const buildRuntime = (
     robotId: robot.robotId,
     seed: scenario.seed ?? 1,
     initialState: scenario.initialState ?? "idle",
-    startTime: 0,
+    startTime,
   });
   const stream = new TelemetryStream(simulator);
   const recorder = new ReplayRecorder({
@@ -133,7 +135,10 @@ const buildRobotResult = (runtime: RobotRuntime): ScenarioRunResult => {
 export class FleetScenarioRunner {
   private readonly profile: FleetScenarioProfile;
 
-  constructor(profile: FleetScenarioProfile) {
+  constructor(
+    profile: FleetScenarioProfile,
+    private readonly clock?: DeterministicClock,
+  ) {
     this.profile = structuredClone(profile);
   }
 
@@ -149,10 +154,11 @@ export class FleetScenarioRunner {
     }
 
     const scenario = structuredClone(this.profile);
+    const startTime = this.clock?.now() ?? 0;
     const runtimes = scenario.robots
       .map((robot) => structuredClone(robot))
       .sort(compareRobotIds)
-      .map((robot) => buildRuntime(robot, scenario));
+      .map((robot) => buildRuntime(robot, scenario, startTime));
     let elapsedMs = 0;
     let stepCount = 0;
 
@@ -172,6 +178,7 @@ export class FleetScenarioRunner {
         runtime.stream.step(deltaMs);
       }
 
+      this.clock?.step(deltaMs);
       elapsedMs += deltaMs;
       stepCount += 1;
 
@@ -243,4 +250,5 @@ export class FleetScenarioRunner {
 
 export const runFleetScenario = (
   profile: FleetScenarioProfile,
-): FleetScenarioRunResult => new FleetScenarioRunner(profile).run();
+  clock?: DeterministicClock,
+): FleetScenarioRunResult => new FleetScenarioRunner(profile, clock).run();

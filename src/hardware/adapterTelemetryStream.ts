@@ -1,5 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
 
+import type { DeterministicClock } from "../clock/clockTypes.js";
 import type { TelemetrySnapshot } from "../types.js";
 import {
   AdapterTelemetryCollector,
@@ -26,6 +27,7 @@ export interface AdapterTelemetryStreamOptions
   extends AdapterTelemetryCollectorOptions {
   startTime?: TelemetryCollectionTimestamp;
   emitReadingChanges?: boolean;
+  clock?: DeterministicClock;
 }
 
 interface ObservedAdapter {
@@ -78,6 +80,7 @@ export class AdapterTelemetryStream {
   private readonly collector: AdapterTelemetryCollector;
   private readonly adapters: readonly HardwareAdapter<unknown>[];
   private readonly emitReadingChanges: boolean;
+  private readonly clock: DeterministicClock | undefined;
   private readonly handlers = new Set<AdapterTelemetryEventHandler>();
   private status: AdapterTelemetryStreamStatus = "stopped";
   private sequence = 0;
@@ -93,7 +96,8 @@ export class AdapterTelemetryStream {
       options.system,
     ];
     this.emitReadingChanges = options.emitReadingChanges ?? false;
-    this.timestamp = toTimestamp(options.startTime ?? 0);
+    this.clock = options.clock;
+    this.timestamp = this.clock?.now() ?? toTimestamp(options.startTime ?? 0);
   }
 
   start(): void {
@@ -130,7 +134,7 @@ export class AdapterTelemetryStream {
       }
     }
 
-    this.timestamp += deltaMs;
+    this.timestamp = this.clock?.step(deltaMs) ?? this.timestamp + deltaMs;
     const currentObservations = this.observeAdapters();
 
     currentObservations.forEach((current, index) => {

@@ -1,3 +1,4 @@
+import type { ReplayClock } from "../clock/replayClock.js";
 import type {
   TelemetryEvent,
   TelemetryEventHandler,
@@ -12,7 +13,10 @@ export class ReplayPlayer {
   private status: ReplayPlayerStatus = "stopped";
   private currentIndex = 0;
 
-  constructor(log: ReplayLog) {
+  constructor(
+    log: ReplayLog,
+    private readonly clock?: ReplayClock,
+  ) {
     this.events = [...log.events];
   }
 
@@ -34,6 +38,10 @@ export class ReplayPlayer {
     if (event === undefined) {
       this.status = "stopped";
       return undefined;
+    }
+
+    if (this.clock !== undefined && this.currentIndex > 0) {
+      this.clock.advanceToNextEvent();
     }
 
     this.currentIndex += 1;

@@ -1,13 +1,46 @@
 # Architecture
 
-Interstice Telemetry v0.9 is split into twelve small layers.
+Interstice Telemetry v0.10 is split into thirteen small layers.
+
+## Deterministic clock layer
+
+The clock layer centralizes explicit, inspectable time without adding
+scheduling. `DeterministicClock` defines `now`, `step`, `reset`, and `getInfo`;
+all operations are synchronous and deterministic. `ClockInfo` exposes stable
+identity, clock kind, current milliseconds, step count, and optional metadata.
+`validateClock` checks clock behavior and information through structured
+errors and warnings.
+
+Four implementations serve distinct timeline roles:
+
+- `SimulationClock` advances elapsed time by caller-provided deltas.
+- `LogicalClock` adds fixed-size logical ticks for deterministic ordering when
+  physical elapsed time is secondary.
+- `ReplayClock` copies event timestamps and advances through them without
+  modifying the replay events.
+- `FleetClock` advances once per global fleet step, independent of robot count.
+
+Clocks integrate additively. Streams and runners accept optional clocks, while
+their existing internal time behavior remains unchanged when no clock is
+provided. A clock-backed telemetry or adapter stream advances its clock only
+for a successful running step. A scenario clock advances once per scenario
+step; a fleet clock advances once after all robots complete a global step.
+`ReplayPlayer` can advance a supplied `ReplayClock` alongside the replay
+cursor. Experiment metadata can retain a `ClockInfo` snapshot.
+
+This layer provides a common time basis for later cross-robot fleet ordering,
+replay synchronization, and diagnostics. It is deliberately not a wall-clock
+scheduler and contains no timers, waits, background work, network clock
+synchronization, NTP/PTP, ROS time, or hardware polling.
 
 ## Simulator
 
-`RobotSimulator` owns the robot clock and baseline state. Calling `step` moves
-the clock forward, updates battery and motor temperature, and samples the next
-snapshot from a seeded pseudo-random source. Equal configuration and operation
-sequences therefore produce equal output.
+`RobotSimulator` retains its existing internal timestamp and baseline state.
+Calling `step` moves that timestamp forward, updates battery and motor
+temperature, and samples the next snapshot from a seeded pseudo-random source.
+An optional external deterministic clock can coordinate the surrounding stream
+or runner without rewriting simulator behavior. Equal configuration and
+operation sequences therefore produce equal output.
 
 ## Telemetry snapshot model
 
