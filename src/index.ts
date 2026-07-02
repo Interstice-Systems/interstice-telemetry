@@ -211,3 +211,32 @@ export type {
   TelemetrySnapshot,
   Vector3,
 } from "./types.js";
+export {
+  deserializeFleetEventTimeline,
+  serializeFleetEventTimeline,
+} from "./timeline/timelineArtifacts.js";
+export { buildFleetEventTimeline } from "./timeline/timelineBuilder.js";
+export {
+  filterTimelineByEventType,
+  filterTimelineByRobot,
+  filterTimelineByTimeRange,
+  getTimelineEventByFleetSequence,
+  summarizeTimelineByEventType,
+  summarizeTimelineByRobot,
+} from "./timeline/timelineQueries.js";
+export {
+  renderFleetTimelineReport,
+  renderFleetTimelineSummary,
+} from "./timeline/timelineReport.js";
+export {
+  FLEET_EVENT_TIMELINE_VERSION,
+} from "./timeline/timelineTypes.js";
+export type {
+  FleetEventTimeline,
+  FleetTimelineBuildOptions,
+  FleetTimelineValidationResult,
+  GlobalFleetEvent,
+} from "./timeline/timelineTypes.js";
+export {
+  validateFleetEventTimeline,
+} from "./timeline/timelineValidator.js";

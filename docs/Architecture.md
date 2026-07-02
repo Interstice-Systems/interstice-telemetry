@@ -1,6 +1,6 @@
 # Architecture
 
-Interstice Telemetry v0.10 is split into thirteen small layers.
+Interstice Telemetry v0.11 is split into fourteen small layers.
 
 ## Deterministic clock layer
 
@@ -28,8 +28,8 @@ step; a fleet clock advances once after all robots complete a global step.
 `ReplayPlayer` can advance a supplied `ReplayClock` alongside the replay
 cursor. Experiment metadata can retain a `ClockInfo` snapshot.
 
-This layer provides a common time basis for later cross-robot fleet ordering,
-replay synchronization, and diagnostics. It is deliberately not a wall-clock
+This layer provides the common time basis used by derived cross-robot fleet
+ordering and later diagnostics. It is deliberately not a wall-clock
 scheduler and contains no timers, waits, background work, network clock
 synchronization, NTP/PTP, ROS time, or hardware polling.
 
@@ -131,11 +131,11 @@ not reorder events. Given the same valid log and the same sequence of player
 calls, subscribers observe the same values in the same order. Playback has no
 timers, asynchronous background loop, network access, or hardware dependency.
 
-Current replay non-goals are scheduling events according to timestamps,
-network transport, and one globally sequenced multi-robot event stream. The
-fleet layer can wrap independent robot logs without changing this contract,
-and the artifact layer can persist those logs without adding file-system
-behavior to replay itself.
+Current replay non-goals are scheduling events according to timestamps and
+network transport. The fleet layer wraps independent robot logs without
+changing this contract; the timeline layer derives a globally sequenced view,
+and the artifact layer persists both forms without adding file-system behavior
+to replay itself.
 
 ## Scenario layer
 
@@ -280,8 +280,9 @@ FleetScenarioProfile
 
 The result retains normal `ScenarioRunResult` objects keyed by robot ID and
 adds robot count, global step count, total events, total faults, and final
-states. Event IDs and sequences remain deterministic and independent per
-robot; v0.7 does not invent a global event sequence.
+states. Event IDs and replay sequences remain deterministic and independent
+per robot. The separate timeline layer can derive global sequence numbers
+without changing those source events.
 
 ### Fleet replay wrapper and reporting
 
@@ -301,6 +302,41 @@ The fleet layer is a synchronous simulation coordinator only. It includes no
 networking, distributed consensus, ROS integration, real robot fleet control,
 hardware discovery, global clock synchronization, timers, background loops, or
 asynchronous polling.
+
+## Global fleet timeline layer
+
+The timeline layer is a read-only derivation from `FleetReplayLog`. It
+flattens the existing per-robot event arrays, clones payloads, and sorts events
+by timestamp, robot ID, robot sequence, then event ID. The final event ID
+tie-breaker makes ordering total even for externally assembled logs with equal
+timestamps and duplicate per-robot sequence values.
+
+```text
+FleetReplayLog
+  -> flatten per-robot ReplayLog events
+  -> sort(timestamp, robotId, robotSequence, eventId)
+  -> assign fleetSequence from 1
+  -> FleetEventTimeline
+```
+
+Each `GlobalFleetEvent` preserves the source event's robot ID,
+`robotSequence`, timestamp, type, event ID, and payload. Its
+`fleetSequence` identifies the event's position only in the derived global
+view. No global sequence is written back to a stream event or replay log, and
+timeline construction does not mutate its input.
+
+`validateFleetEventTimeline` checks identity and version fields, event counts,
+known event types, positive robot sequences, finite non-negative timestamps,
+and strictly increasing fleet sequences beginning at one. Backward timestamps
+and empty timelines are warnings so loaded evidence can be inspected without
+weakening validity checks.
+
+Pure queries filter by robot ID, event type, or inclusive timestamp range,
+look up one fleet sequence, and produce deterministic key-sorted counts by
+robot or event type. The summary and full report renderers return fixed-layout
+plain text; the full report includes the first ten globally ordered events.
+This stable model is the input boundary for future diagnostics, CI rules, and
+visualization, not an event-ingestion or distributed synchronization system.
 
 ## Experiment artifact layer
 
@@ -344,9 +380,11 @@ and replay validations, telemetry summary, final telemetry report, event
 timeline, fault report, scenario report, and replay report.
 
 `exportFleetRunArtifacts` writes the fleet profile, fleet replay wrapper,
-aggregate validations and reports, then writes each robot's replay log,
-validations, and five existing single-robot reports below a sanitized robot
-folder. Robot entries and IDs retain deterministic sorted order.
+aggregate validations and reports, a derived timeline JSON file, timeline
+report and summary text, then writes each robot's replay log, validations, and
+five existing single-robot reports below a sanitized robot folder. Timeline
+validation is included in the aggregate validation document. Robot entries and
+IDs retain deterministic sorted order.
 
 Both exporters default the artifact creation time to the corresponding replay
 creation time and reuse existing pure renderers. Equal run results and export

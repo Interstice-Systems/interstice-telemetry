@@ -55,10 +55,12 @@ Added simulation, logical, replay, and fleet clocks; structured clock
 validation; optional stream, runner, replay, and experiment metadata
 integration; and a manually stepped end-to-end example.
 
-## v0.11 — Global fleet event timeline
+## v0.11 — Global fleet event timeline (completed)
 
-Add deterministic cross-robot event ordering and a timeline view on the shared
-fleet clock while preserving each robot's existing replay sequence.
+Added a derived global fleet event model, deterministic cross-robot ordering,
+fleet sequence assignment, structured validation, pure query and summary
+helpers, fixed-layout reports, timeline artifact export, and an end-to-end
+example while preserving each robot's existing replay sequence.
 
 ## v0.12 — Anomaly and diagnostics reports
 

@@ -20,6 +20,9 @@ export const EXPERIMENT_ARTIFACT_FILE_KINDS = [
   "report",
   "validation",
   "telemetry-summary",
+  "fleet-event-timeline",
+  "timeline-report",
+  "timeline-summary",
 ] as const;
 
 export type ExperimentArtifactFileKind =

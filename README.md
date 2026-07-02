@@ -28,6 +28,7 @@ npm run example:fleet
 npm run example:artifacts
 npm run example:adapter-stream
 npm run example:clock
+npm run example:timeline
 ```
 
 Create and step a simulator:
@@ -87,8 +88,8 @@ Clocks are optional in `TelemetryStream`, `AdapterTelemetryStream`,
 `ScenarioRunner`, `FleetScenarioRunner`, and `ReplayPlayer`, so existing
 behavior remains the default. A clock's `ClockInfo` can also be stored in
 experiment metadata to identify the timeline used for a run. Fleet clocks
-establish the shared time basis needed for a future cross-robot event
-timeline, without introducing a global event sequence in this release.
+establish the shared time basis used to derive the global fleet event timeline.
+The original stream and replay events continue to use per-robot sequences.
 
 These clocks are not real-time schedulers. They do not read wall time, wait,
 create timers, start asynchronous loops, or synchronize distributed systems.
@@ -96,6 +97,51 @@ Run the complete example with:
 
 ```bash
 npm run example:clock
+```
+
+## Global fleet event timeline
+
+Version 0.11 derives one canonical ordered view from an existing
+`FleetReplayLog`. This makes cross-robot experiment evidence searchable and
+comparable without modifying or replacing the authoritative per-robot replay
+logs.
+
+```ts
+import {
+  buildFleetEventTimeline,
+  filterTimelineByEventType,
+  getBuiltInFleetScenario,
+  renderFleetTimelineReport,
+  runFleetScenario,
+  validateFleetEventTimeline,
+} from "interstice-telemetry";
+
+const profile = getBuiltInFleetScenario("mixed-fault-fleet");
+if (!profile) throw new Error("Fleet scenario not found");
+
+const result = runFleetScenario(profile);
+const timeline = buildFleetEventTimeline(result.fleetReplayLog);
+
+console.log(validateFleetEventTimeline(timeline));
+console.log(filterTimelineByEventType(timeline, "fault.injected"));
+console.log(renderFleetTimelineReport(timeline));
+```
+
+Every timeline event retains its original event ID, timestamp, payload, and
+`robotSequence`. A separate `fleetSequence`, starting at one, represents its
+position in the derived global view. Events are sorted by timestamp, robot ID,
+robot sequence, then event ID, which resolves equal timestamps reproducibly.
+
+Pure helpers filter by robot, event type, or inclusive time range; look up a
+fleet sequence; and summarize counts by robot or event type. Fleet artifact
+exports include the timeline JSON plus deterministic report and summary text.
+This gives future diagnostics and visualization layers a stable evidence
+model while keeping execution local, synchronous, and manually stepped.
+
+Run the complete build, validation, query, report, and export example:
+
+```bash
+npm run example:timeline
 ```
 
 ## Deterministic event streams
@@ -464,6 +510,10 @@ artifacts/mixed-fault-fleet/
   reports/
     fleet-report.txt
     fleet-replay-report.txt
+  timeline/
+    fleet-event-timeline.json
+    fleet-timeline-report.txt
+    fleet-timeline-summary.txt
   robots/
     robot-alpha/
       replay-log.json
@@ -559,21 +609,21 @@ npm run example:adapter-stream
 
 ## Current limitations
 
-Version 0.9 still models one robot per simulator, event stream, replay log, and
-adapter stream; fleet support coordinates simulator-backed units through a
-synchronous wrapper. Event sequence numbers remain per stream rather than
-global. Adapter status and reading changes are observed only on explicit
-steps. Physics is deliberately simple, reports use fixed-layout plain text,
-and hardware adapters are virtual. Persistence is local and uncompressed.
-The SDK does not provide real device or fleet control, databases, cloud
-storage, networking, ROS, background streaming, an interactive or web UI, or
-environment physics.
+Version 0.11 still models one robot per simulator, event stream, replay log,
+and adapter stream; fleet support coordinates simulator-backed units through
+a synchronous wrapper. Global timeline order is derived after a run and does
+not add a sequence to live stream events. Adapter changes are observed only on
+explicit steps. Physics is deliberately simple, reports use fixed-layout plain
+text, and hardware adapters are virtual. Persistence is local and
+uncompressed. The SDK does not provide real device or fleet control,
+distributed clock synchronization, databases, cloud storage, networking, ROS,
+background streaming, an interactive or web UI, or environment physics.
 
 ## Future direction
 
-The project will grow toward a global fleet event timeline and diagnostics
-while keeping its simulation, replay, scenario, fleet, reporting, artifact,
-and adapter core deterministic and transport-independent. See
+The project will grow toward deterministic diagnostics and visualization over
+the global fleet timeline while keeping its simulation, replay, scenario,
+fleet, reporting, artifact, and adapter core transport-independent. See
 [the roadmap](docs/Roadmap.md).
 
 Architecture details are in [docs/Architecture.md](docs/Architecture.md).

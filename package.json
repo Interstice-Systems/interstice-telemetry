@@ -1,6 +1,6 @@
 {
   "name": "interstice-telemetry",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Deterministic robotics telemetry experiments and artifacts.",
   "type": "module",
   "main": "dist/index.js",
@@ -29,7 +29,8 @@
     "example:fleet": "tsx examples/fleet-scenario.ts",
     "example:artifacts": "tsx examples/experiment-artifacts.ts",
     "example:adapter-stream": "tsx examples/adapter-event-stream.ts",
-    "example:clock": "tsx examples/clock-system.ts"
+    "example:clock": "tsx examples/clock-system.ts",
+    "example:timeline": "tsx examples/fleet-timeline.ts"
   },
   "engines": {
     "node": ">=20"

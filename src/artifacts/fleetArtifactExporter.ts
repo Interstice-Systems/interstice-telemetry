@@ -9,6 +9,12 @@ import {
   renderFleetScenarioReport,
 } from "../fleet/fleetReport.js";
 import type { FleetScenarioRunResult } from "../fleet/fleetTypes.js";
+import { buildFleetEventTimeline } from "../timeline/timelineBuilder.js";
+import {
+  renderFleetTimelineReport,
+  renderFleetTimelineSummary,
+} from "../timeline/timelineReport.js";
+import { validateFleetEventTimeline } from "../timeline/timelineValidator.js";
 import {
   createArtifactMetadataDocument,
   createExperimentArtifactBundle,
@@ -112,6 +118,21 @@ export const exportFleetRunArtifacts = (
       kind: "report",
       format: "txt",
     },
+    {
+      path: "timeline/fleet-event-timeline.json",
+      kind: "fleet-event-timeline",
+      format: "json",
+    },
+    {
+      path: "timeline/fleet-timeline-report.txt",
+      kind: "timeline-report",
+      format: "txt",
+    },
+    {
+      path: "timeline/fleet-timeline-summary.txt",
+      kind: "timeline-summary",
+      format: "txt",
+    },
     ...robotIds.flatMap((robotId) =>
       robotFiles(robotId, folders.get(robotId)!),
     ),
@@ -130,6 +151,12 @@ export const exportFleetRunArtifacts = (
     metadata,
     files,
   });
+  const timeline = buildFleetEventTimeline(
+    result.fleetReplayLog,
+    metadata.clock === undefined
+      ? {}
+      : { clockKind: metadata.clock.kind },
+  );
   const contents: Record<string, unknown> = {
     "metadata.json": createArtifactMetadataDocument(bundle),
     "fleet-scenario.json": result.scenario,
@@ -137,12 +164,18 @@ export const exportFleetRunArtifacts = (
     "validation.json": {
       fleet: result.fleetValidation,
       fleetReplay: validateFleetReplayLog(result.fleetReplayLog),
+      timeline: validateFleetEventTimeline(timeline),
     },
     "telemetry-summary.json": createFleetTelemetrySummary(result),
     "reports/fleet-report.txt": renderFleetScenarioReport(result),
     "reports/fleet-replay-report.txt": renderFleetReplayReport(
       result.fleetReplayLog,
     ),
+    "timeline/fleet-event-timeline.json": timeline,
+    "timeline/fleet-timeline-report.txt":
+      renderFleetTimelineReport(timeline),
+    "timeline/fleet-timeline-summary.txt":
+      renderFleetTimelineSummary(timeline),
   };
 
   for (const robotId of robotIds) {

@@ -13,5 +13,10 @@ describe("experiment artifact types", () => {
     expect(EXPERIMENT_ARTIFACT_KINDS).toEqual(["scenario", "fleet"]);
     expect(EXPERIMENT_ARTIFACT_FORMATS).toEqual(["json", "txt"]);
     expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain("telemetry-summary");
+    expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain(
+      "fleet-event-timeline",
+    );
+    expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain("timeline-report");
+    expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain("timeline-summary");
   });
 });
