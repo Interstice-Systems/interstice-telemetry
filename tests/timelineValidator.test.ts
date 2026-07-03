@@ -48,6 +48,20 @@ describe("validateFleetEventTimeline", () => {
     expect(validateFleetEventTimeline(timeline).valid).toBe(false);
   });
 
+  it("rejects unsupported versions and invalid creation times", () => {
+    const timeline = validTimeline();
+    timeline.version = "99.0.0";
+    timeline.createdAt = "not-a-date";
+
+    const result = validateFleetEventTimeline(timeline);
+    expect(result.errors).toContain(
+      'Unsupported fleet event timeline version "99.0.0"; expected "0.11.0".',
+    );
+    expect(result.errors).toContain(
+      "Fleet event timeline createdAt must be a valid date string.",
+    );
+  });
+
   it("rejects non-increasing fleet sequences", () => {
     const timeline = validTimeline();
     timeline.events[1]!.fleetSequence = 1;
@@ -87,7 +101,7 @@ describe("validateFleetEventTimeline", () => {
     );
   });
 
-  it("warns for empty timelines and backward timestamps", () => {
+  it("warns for empty timelines and rejects backward timestamps", () => {
     const empty = validTimeline();
     empty.eventCount = 0;
     empty.events = [];
@@ -97,9 +111,26 @@ describe("validateFleetEventTimeline", () => {
     expect(validateFleetEventTimeline(empty).warnings).toContain(
       "Fleet event timeline contains no events.",
     );
-    expect(validateFleetEventTimeline(backward).warnings).toContain(
-      "Timeline event at index 1 timestamp moves backward.",
+    expect(validateFleetEventTimeline(backward).errors).toContain(
+      "Timeline event at index 1 timestamp must not move backward.",
+    );
+  });
+
+  it("rejects sequence gaps, duplicate IDs, and non-canonical ties", () => {
+    const timeline = validTimeline();
+    timeline.events[1]!.fleetSequence = 3;
+    timeline.events[1]!.eventId = "a-1";
+    timeline.events[1]!.robotId = "robot-0";
+
+    const errors = validateFleetEventTimeline(timeline).errors;
+    expect(errors).toContain(
+      "Timeline event at index 1 fleetSequence must equal 2.",
+    );
+    expect(errors).toContain(
+      'Timeline event at index 1 has duplicate eventId "a-1".',
+    );
+    expect(errors).toContain(
+      "Timeline event at index 1 is not in canonical timeline order.",
     );
   });
 });
-

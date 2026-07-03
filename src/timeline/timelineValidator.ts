@@ -1,7 +1,10 @@
 import {
   TELEMETRY_EVENT_TYPES,
 } from "../events/eventTypes.js";
-import type { FleetTimelineValidationResult } from "./timelineTypes.js";
+import {
+  FLEET_EVENT_TIMELINE_VERSION,
+  type FleetTimelineValidationResult,
+} from "./timelineTypes.js";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -25,10 +28,21 @@ export const validateFleetEventTimeline = (
 
   if (!isNonEmptyString(timeline.version)) {
     errors.push("Fleet event timeline version is required.");
+  } else if (timeline.version !== FLEET_EVENT_TIMELINE_VERSION) {
+    errors.push(
+      `Unsupported fleet event timeline version "${timeline.version}"; expected "${FLEET_EVENT_TIMELINE_VERSION}".`,
+    );
   }
 
   if (!isNonEmptyString(timeline.fleetId)) {
     errors.push("Fleet event timeline fleetId is required.");
+  }
+
+  if (
+    typeof timeline.createdAt !== "string" ||
+    !Number.isFinite(Date.parse(timeline.createdAt))
+  ) {
+    errors.push("Fleet event timeline createdAt must be a valid date string.");
   }
 
   if (!Array.isArray(timeline.events)) {
@@ -51,6 +65,15 @@ export const validateFleetEventTimeline = (
 
   let previousFleetSequence: number | undefined;
   let previousTimestamp: number | undefined;
+  let previousOrder:
+    | {
+        timestamp: number;
+        robotId: string;
+        robotSequence: number;
+        eventId: string;
+      }
+    | undefined;
+  const eventIds = new Set<string>();
 
   timeline.events.forEach((event, index) => {
     const label = `Timeline event at index ${index}`;
@@ -70,6 +93,9 @@ export const validateFleetEventTimeline = (
 
       if (index === 0 && fleetSequence !== 1) {
         errors.push("Fleet event timeline fleetSequence must start at 1.");
+      }
+      if (fleetSequence !== index + 1) {
+        errors.push(`${label} fleetSequence must equal ${index + 1}.`);
       }
       if (
         previousFleetSequence !== undefined &&
@@ -104,7 +130,7 @@ export const validateFleetEventTimeline = (
         previousTimestamp !== undefined &&
         event.timestamp < previousTimestamp
       ) {
-        warnings.push(`${label} timestamp moves backward.`);
+        errors.push(`${label} timestamp must not move backward.`);
       }
       previousTimestamp = event.timestamp;
     }
@@ -118,9 +144,54 @@ export const validateFleetEventTimeline = (
 
     if (!isNonEmptyString(event.eventId)) {
       errors.push(`${label} eventId is required.`);
+    } else if (eventIds.has(event.eventId)) {
+      errors.push(`${label} has duplicate eventId "${event.eventId}".`);
+    } else {
+      eventIds.add(event.eventId);
+    }
+
+    if (
+      typeof event.timestamp === "number" &&
+      Number.isFinite(event.timestamp) &&
+      isNonEmptyString(event.robotId) &&
+      Number.isInteger(event.robotSequence) &&
+      isNonEmptyString(event.eventId)
+    ) {
+      const currentOrder = {
+        timestamp: event.timestamp,
+        robotId: event.robotId,
+        robotSequence: event.robotSequence as number,
+        eventId: event.eventId,
+      };
+
+      if (
+        previousOrder !== undefined &&
+        compareCanonicalOrder(previousOrder, currentOrder) > 0
+      ) {
+        errors.push(`${label} is not in canonical timeline order.`);
+      }
+      previousOrder = currentOrder;
     }
   });
 
   return { valid: errors.length === 0, errors, warnings };
 };
 
+const compareCanonicalOrder = (
+  left: {
+    timestamp: number;
+    robotId: string;
+    robotSequence: number;
+    eventId: string;
+  },
+  right: {
+    timestamp: number;
+    robotId: string;
+    robotSequence: number;
+    eventId: string;
+  },
+): number =>
+  left.timestamp - right.timestamp ||
+  (left.robotId < right.robotId ? -1 : left.robotId > right.robotId ? 1 : 0) ||
+  left.robotSequence - right.robotSequence ||
+  (left.eventId < right.eventId ? -1 : left.eventId > right.eventId ? 1 : 0);

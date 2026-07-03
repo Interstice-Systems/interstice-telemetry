@@ -66,6 +66,10 @@ export const validateFleetReplayLog = (
 
   if (typeof log.version !== "string" || log.version.trim().length === 0) {
     errors.push("Fleet replay log version is required.");
+  } else if (log.version !== FLEET_REPLAY_LOG_VERSION) {
+    errors.push(
+      `Unsupported fleet replay log version "${log.version}"; expected "${FLEET_REPLAY_LOG_VERSION}".`,
+    );
   }
 
   if (typeof log.fleetId !== "string" || log.fleetId.trim().length === 0) {

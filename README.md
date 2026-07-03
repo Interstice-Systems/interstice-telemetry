@@ -1,23 +1,250 @@
 # Interstice Telemetry
 
-Interstice Telemetry is a deterministic, software-first robotics telemetry
-simulator. It generates believable sensor, actuator, resource, and operating
-state snapshots without requiring a physical robot.
+Deterministic telemetry and digital-twin infrastructure.
 
-Developing against simulated telemetry lets robotics teams define interfaces,
-exercise failure handling, and test downstream software before hardware is
-available or safe to use. This foundation intentionally stays independent of
-robot middleware and transport protocols.
+Interstice Telemetry is a transport-independent TypeScript SDK for generating,
+recording, replaying, validating, and inspecting repeatable robot telemetry
+experiments. It gives robotics teams useful software evidence before hardware
+is available, safe, or reproducible.
 
-## Getting started
+Version 1.1 also provides immutable robot, complete-state, scene, timeline,
+and replay-event contracts. These form a transport- and engine-independent
+digital twin foundation for long-lived autonomous systems.
 
-Requires Node.js 20 or newer.
+The SDK is synchronous and manually stepped. It does not start timers,
+background loops, network connections, or hardware polling.
+
+## What it provides
+
+- Seeded robot telemetry simulation.
+- Simulator and adapter-backed event streams.
+- Replay recording, validation, JSON serialization, and playback.
+- Reusable single-robot and fleet scenarios.
+- Explicit simulation, logical, replay, and fleet clocks.
+- A derived global fleet event timeline.
+- Pure terminal reports.
+- Versioned local experiment artifacts.
+- Synchronous hardware adapter contracts and virtual adapters.
+- Immutable robot structure and environment metadata.
+- Complete deterministic `RobotState` snapshots.
+- Reconstructable twin timelines and ordered replay markers.
+- Future-facing platform interfaces without platform implementations.
+
+It is not a physics engine, renderer, robot controller, production telemetry
+transport, distributed clock service, database, cloud platform, ROS
+integration, or real-time fleet dashboard.
+
+## Requirements and installation
+
+- Node.js 20 or newer.
+- ESM project configuration.
 
 ```bash
-npm install
-npm test
-npm run typecheck
-npm run lint
+npm install interstice-telemetry
+```
+
+For a source checkout:
+
+```bash
+npm ci
+npm run check
+```
+
+## Quick start
+
+Run a built-in deterministic scenario and inspect its evidence:
+
+```ts
+import {
+  getBuiltInScenario,
+  ReplayPlayer,
+  renderScenarioReport,
+  runScenario,
+} from "interstice-telemetry";
+
+const profile = getBuiltInScenario("motor-overheat");
+if (!profile) throw new Error("Scenario not found");
+
+const result = runScenario(profile);
+console.log(renderScenarioReport(result));
+
+const player = new ReplayPlayer(result.replayLog);
+player.subscribe((event) => {
+  console.log(event.sequence, event.type, event.timestamp);
+});
+player.start();
+player.playAll();
+```
+
+Equal package/runtime versions, profile, seed, start time, and ordered calls
+produce equal values. See [Determinism](docs/DETERMINISM.md) for the exact
+preconditions and limits.
+
+## Evidence pipeline
+
+```text
+simulate / adapt
+  -> collect telemetry
+  -> stream events
+  -> record replay
+  -> reconstruct RobotState
+  -> inspect twin timeline
+  -> build fleet timeline
+  -> render reports
+  -> export artifacts
+```
+
+The models remain separate on purpose:
+
+- `TelemetrySnapshot` is the common observation contract.
+- `Robot` and `Scene` provide structural and environmental context.
+- `RobotState` is complete normalized state at one timestamp.
+- `TwinTimeline` is a deterministic history of states and event markers.
+- `TelemetryEvent` records an ordered stream action or observation.
+- `ReplayLog` preserves one robot's event evidence.
+- `FleetReplayLog` retains independent replay logs for multiple robots.
+- `FleetEventTimeline` derives a canonical cross-robot order.
+- `ExperimentArtifactBundle` indexes persisted JSON and text evidence.
+
+## Digital twin quick start
+
+```ts
+import {
+  createRobotState,
+  reconstructTwinTimeline,
+  TwinReplayCursor,
+} from "interstice-telemetry";
+
+const timeline = reconstructTwinTimeline(
+  "rover-1",
+  telemetryRecords,
+  (_previous, record) =>
+    createRobotState({
+      ...baseState,
+      robotId: record.robotId,
+      timestamp: record.timestamp,
+      sensorValues: record.payload.sensors,
+    }),
+);
+
+const cursor = new TwinReplayCursor(timeline);
+console.log(cursor.next());
+console.log(cursor.seek(5_000));
+```
+
+The reconstruction callback is application-owned because telemetry meaning,
+units, and completeness depend on the producer. Input records are ordered by
+timestamp, sequence, then identifier before reconstruction.
+
+## Core workflows
+
+### Simulate
+
+```ts
+import { RobotSimulator } from "interstice-telemetry";
+
+const robot = new RobotSimulator({
+  robotId: "rover-1",
+  seed: 42,
+  startTime: 0,
+  initialState: "active",
+});
+
+console.log(robot.step(1_000));
+robot.injectFault({ type: "low_battery" });
+console.log(robot.step(1_000));
+```
+
+### Stream and record
+
+```ts
+import {
+  ReplayRecorder,
+  RobotSimulator,
+  TelemetryStream,
+} from "interstice-telemetry";
+
+const stream = new TelemetryStream(
+  new RobotSimulator({ robotId: "rover-1", seed: 42 }),
+);
+const recorder = new ReplayRecorder();
+const unsubscribe = stream.subscribe(recorder.record);
+
+recorder.start();
+stream.start();
+stream.step(1_000);
+stream.stop();
+recorder.stop();
+unsubscribe();
+
+const log = recorder.toLog();
+```
+
+Every subscriber and replay boundary receives an independent event copy.
+Handler exceptions propagate synchronously.
+
+### Run a fleet and build a timeline
+
+```ts
+import {
+  buildFleetEventTimeline,
+  getBuiltInFleetScenario,
+  renderFleetTimelineReport,
+  runFleetScenario,
+} from "interstice-telemetry";
+
+const profile = getBuiltInFleetScenario("mixed-fault-fleet");
+if (!profile) throw new Error("Fleet scenario not found");
+
+const result = runFleetScenario(profile);
+const timeline = buildFleetEventTimeline(result.fleetReplayLog);
+console.log(renderFleetTimelineReport(timeline));
+```
+
+The timeline is derived evidence. Per-robot replay logs remain authoritative.
+
+### Export artifacts
+
+```ts
+import {
+  exportFleetRunArtifacts,
+  readExperimentArtifacts,
+} from "interstice-telemetry";
+
+const written = exportFleetRunArtifacts(result, {
+  rootDir: "artifacts",
+});
+const loaded = readExperimentArtifacts(written.experimentPath);
+console.log(loaded.validation);
+```
+
+Artifact persistence is synchronous and Node-only. Existing experiment
+directories are not replaced unless `overwrite: true` is explicit.
+
+## Documentation
+
+- [Getting started](docs/GETTING_STARTED.md)
+- [API reference](docs/API.md)
+- [API stability](docs/API_STABILITY.md)
+- [Determinism contract](docs/DETERMINISM.md)
+- [Architecture](docs/Architecture.md)
+- [Digital twin architecture](docs/DigitalTwinArchitecture.md)
+- [RobotState](docs/RobotState.md)
+- [Twin timeline](docs/TwinTimeline.md)
+- [Scene model](docs/SceneModel.md)
+- [Digital twin roadmap](docs/FutureRoadmap.md)
+- [v1.1 migration](docs/MIGRATION_V1_1.md)
+- [Examples](docs/EXAMPLES.md)
+- [Replay](docs/REPLAY.md)
+- [Fleet timelines](docs/FLEET_TIMELINES.md)
+- [Artifacts](docs/ARTIFACTS.md)
+- [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
+- [Roadmap](docs/Roadmap.md)
+- [Release process](docs/RELEASING.md)
+
+## Example commands
+
+```bash
 npm run example
 npm run example:stream
 npm run example:replay
@@ -31,599 +258,36 @@ npm run example:clock
 npm run example:timeline
 ```
 
-Create and step a simulator:
-
-```ts
-import { RobotSimulator } from "interstice-telemetry";
-
-const robot = new RobotSimulator({
-  robotId: "rover-1",
-  seed: 42,
-  initialState: "active",
-});
-
-console.log(robot.step(1_000));
-robot.injectFault({ type: "low_battery" });
-console.log(robot.step(1_000));
-```
-
-The same seed, starting time, state, and sequence of operations produce the
-same snapshots. See `examples/basic-simulation.ts` for a runnable example.
-
-## Deterministic clocks
-
-Version 0.10 makes simulation time explicit and reusable across SDK layers.
-Every clock is synchronous and advances only through `step`, `tick`, or replay
-navigation calls:
-
-- `SimulationClock` tracks elapsed simulation time.
-- `LogicalClock` provides deterministic ticks for event ordering.
-- `ReplayClock` follows the immutable timestamps of recorded events.
-- `FleetClock` tracks one global elapsed time for a fleet run.
-
-```ts
-import {
-  RobotSimulator,
-  SimulationClock,
-  TelemetryStream,
-  validateClock,
-} from "interstice-telemetry";
-
-const clock = new SimulationClock({
-  id: "experiment-clock",
-  startTimeMs: 0,
-});
-const stream = new TelemetryStream(new RobotSimulator(), clock);
-
-stream.start();
-stream.step(100);
-stream.step(250);
-
-console.log(clock.now()); // 350
-console.log(clock.getInfo());
-console.log(validateClock(clock));
-```
-
-Clocks are optional in `TelemetryStream`, `AdapterTelemetryStream`,
-`ScenarioRunner`, `FleetScenarioRunner`, and `ReplayPlayer`, so existing
-behavior remains the default. A clock's `ClockInfo` can also be stored in
-experiment metadata to identify the timeline used for a run. Fleet clocks
-establish the shared time basis used to derive the global fleet event timeline.
-The original stream and replay events continue to use per-robot sequences.
-
-These clocks are not real-time schedulers. They do not read wall time, wait,
-create timers, start asynchronous loops, or synchronize distributed systems.
-Run the complete example with:
-
-```bash
-npm run example:clock
-```
-
-## Global fleet event timeline
-
-Version 0.11 derives one canonical ordered view from an existing
-`FleetReplayLog`. This makes cross-robot experiment evidence searchable and
-comparable without modifying or replacing the authoritative per-robot replay
-logs.
-
-```ts
-import {
-  buildFleetEventTimeline,
-  filterTimelineByEventType,
-  getBuiltInFleetScenario,
-  renderFleetTimelineReport,
-  runFleetScenario,
-  validateFleetEventTimeline,
-} from "interstice-telemetry";
-
-const profile = getBuiltInFleetScenario("mixed-fault-fleet");
-if (!profile) throw new Error("Fleet scenario not found");
-
-const result = runFleetScenario(profile);
-const timeline = buildFleetEventTimeline(result.fleetReplayLog);
-
-console.log(validateFleetEventTimeline(timeline));
-console.log(filterTimelineByEventType(timeline, "fault.injected"));
-console.log(renderFleetTimelineReport(timeline));
-```
-
-Every timeline event retains its original event ID, timestamp, payload, and
-`robotSequence`. A separate `fleetSequence`, starting at one, represents its
-position in the derived global view. Events are sorted by timestamp, robot ID,
-robot sequence, then event ID, which resolves equal timestamps reproducibly.
-
-Pure helpers filter by robot, event type, or inclusive time range; look up a
-fleet sequence; and summarize counts by robot or event type. Fleet artifact
-exports include the timeline JSON plus deterministic report and summary text.
-This gives future diagnostics and visualization layers a stable evidence
-model while keeping execution local, synchronous, and manually stepped.
-
-Run the complete build, validation, query, report, and export example:
-
-```bash
-npm run example:timeline
-```
-
-## Deterministic event streams
-
-Version 0.2 adds `TelemetryStream`, a manually stepped event layer around an
-existing `RobotSimulator`. It preserves the simulator API while adding explicit
-lifecycle and observable event delivery:
-
-```ts
-import { RobotSimulator, TelemetryStream } from "interstice-telemetry";
-
-const simulator = new RobotSimulator({
-  robotId: "rover-1",
-  seed: 42,
-  initialState: "active",
-});
-const stream = new TelemetryStream(simulator);
-
-const unsubscribe = stream.subscribe((event) => {
-  console.log(event.sequence, event.type, event.payload);
-});
-
-stream.start();
-stream.step(1_000);
-stream.injectFault({ type: "low_battery" });
-stream.step(1_000);
-stream.stop();
-unsubscribe();
-```
-
-The event types are:
-
-- `stream.started`
-- `stream.stopped`
-- `telemetry.snapshot`
-- `fault.injected`
-- `state.changed`
-
-Streams use no timers or background loops. Events are produced only by explicit
-lifecycle, fault, and `step` calls. The same simulator configuration and action
-sequence produce the same event IDs, sequence numbers, timestamps, ordering,
-and payloads. Run the complete stream example with:
-
-```bash
-npm run example:stream
-```
-
-## Deterministic replay logs
-
-Version 0.3 adds file-system-independent replay logs. `ReplayRecorder` captures
-events from a stream without changing their IDs, timestamps, sequence numbers,
-or payloads. Logs can be validated, serialized to JSON, loaded, and played back
-synchronously with `ReplayPlayer`.
-
-Replay logs let robotics teams reproduce a fault or state transition without
-the original robot or simulator run. This makes debugging, regression tests,
-and sharing a precise event history practical even when hardware is unavailable
-or a failure is difficult to reproduce.
-
-```ts
-import {
-  deserializeReplayLog,
-  ReplayPlayer,
-  ReplayRecorder,
-  RobotSimulator,
-  serializeReplayLog,
-  TelemetryStream,
-  validateReplayLog,
-} from "interstice-telemetry";
-
-const simulator = new RobotSimulator({ robotId: "rover-1", seed: 42 });
-const stream = new TelemetryStream(simulator);
-const recorder = new ReplayRecorder({ robotId: simulator.robotId, seed: 42 });
-const unsubscribe = stream.subscribe(recorder.record);
-
-recorder.start();
-stream.start();
-stream.step(1_000);
-stream.injectFault({ type: "low_battery" });
-stream.step(1_000);
-stream.stop();
-recorder.stop();
-unsubscribe();
-
-const log = recorder.toLog({ scenario: "low-battery-debug" });
-const validation = validateReplayLog(log);
-if (!validation.valid) {
-  throw new Error(validation.errors.join("\n"));
-}
-
-const loadedLog = deserializeReplayLog(serializeReplayLog(log));
-const player = new ReplayPlayer(loadedLog);
-player.subscribe((event) => console.log(event.sequence, event.type));
-player.start();
-player.playAll();
-```
-
-Recording and playback use no timers or background work. `step()` emits one
-remaining event only while the player is running, and `playAll()` synchronously
-emits all remaining events. Run the complete example with:
-
-```bash
-npm run example:replay
-```
-
-## Reusable scenario profiles
-
-Version 0.4 adds deterministic scenario profiles: reusable descriptions of a
-robot's identity, starting state, seed, duration, step interval, and scheduled
-faults. Profiles make patrols and failure cases consistent across development,
-regression tests, and demonstrations. A scenario run uses the existing
-simulator, event stream, and replay layers and returns its final snapshot,
-events, validated replay log, and a compact summary.
-
-The built-in profiles are:
-
-- `basic-patrol`
-- `battery-drain`
-- `motor-overheat`
-- `signal-loss`
-- `sensor-noise`
-- `stalled-motor`
-
-Run a built-in scenario and use its replay log:
-
-```ts
-import {
-  getBuiltInScenario,
-  runScenario,
-  ReplayPlayer,
-} from "interstice-telemetry";
-
-const scenario = getBuiltInScenario("motor-overheat");
-if (!scenario) {
-  throw new Error("Scenario not found");
-}
-
-const result = runScenario(scenario);
-const player = new ReplayPlayer(result.replayLog);
-
-console.log(result.summary);
-console.log(result.replayValidation);
-player.subscribe((event) => console.log(event.sequence, event.type));
-player.start();
-player.playAll();
-```
-
-Scenario execution is synchronous and manually stepped. Scheduled faults are
-injected once when elapsed scenario time reaches or crosses their `atMs`
-value. Run the complete scenario example with:
-
-```bash
-npm run example:scenario
-```
-
-## Terminal-first console reports
-
-Version 0.5 adds a plain-text reporting layer for scenario runs, telemetry
-snapshots, event timelines, faults, and replay logs. Terminal-first inspection
-makes a complete deterministic run easy to read in local development, CI logs,
-remote shells, and incident notes without requiring a browser or terminal UI
-framework.
-
-Renderers are pure functions: they return strings and never write to the
-console. Applications decide where the output goes.
-
-```ts
-import {
-  getBuiltInScenario,
-  renderEventTimeline,
-  renderScenarioReport,
-  runScenario,
-} from "interstice-telemetry";
-
-const scenario = getBuiltInScenario("motor-overheat");
-if (!scenario) {
-  throw new Error("Scenario not found");
-}
-
-const result = runScenario(scenario);
-console.log(renderScenarioReport(result));
-console.log(renderEventTimeline(result.events, { limit: 5 }));
-```
-
-Run the complete mission-control-style example:
-
-```bash
-npm run example:console
-```
-
-Sample output:
-
-```text
-INTERSTICE TELEMETRY — SCENARIO REPORT
-Scenario: Motor Overheat
-Robot: thermal-rover
-Duration: 10000 ms
-Steps: 10
-Events: 14
-Faults: 1
-Final State: faulted
-Replay Valid: yes
-
-FAULT SUMMARY
-Total Fault Events: 1
-- motor overheating at sequence #7, timestamp 5000
-```
-
-This is intentionally not a web UI. Version 0.5 keeps reports portable,
-non-interactive, dependency-free, and straightforward to snapshot-test.
-
-## Hardware adapter interfaces
-
-Version 0.6 adds the software seam between telemetry consumers and future
-hardware sources. A small synchronous `HardwareAdapter<TReading>` contract
-exposes adapter identity, health status, and a current reading. Virtual battery,
-motor, IMU, and system adapters make that boundary testable without devices,
-drivers, middleware, or nondeterministic polling.
-
-Adapter seams matter in robotics because hardware availability and protocols
-vary across development machines and deployed robots. Consumers can depend on
-the stable `TelemetrySnapshot` contract while a future adapter handles the
-details of a Raspberry Pi, Jetson, ESP32, ROS node, motor controller, battery,
-IMU, camera, or networked robot.
-
-`AdapterTelemetryCollector` combines the four current reading domains into a
-snapshot without requiring or replacing `RobotSimulator`:
-
-```ts
-import {
-  AdapterTelemetryCollector,
-  VirtualBatteryAdapter,
-  VirtualImuAdapter,
-  VirtualMotorAdapter,
-  VirtualSystemAdapter,
-} from "interstice-telemetry";
-
-const battery = new VirtualBatteryAdapter({
-  percentage: 85,
-  voltage: 24.5,
-});
-const motor = new VirtualMotorAdapter({ leftRpm: 120, rightRpm: 118 });
-const imu = new VirtualImuAdapter();
-const system = new VirtualSystemAdapter({
-  cpuUsage: 35,
-  memoryUsage: 48,
-  signalStrength: -61,
-});
-
-const collector = new AdapterTelemetryCollector({
-  robotId: "rover-1",
-  battery,
-  motor,
-  imu,
-  system,
-  initialState: "active",
-});
-
-const snapshot = collector.collect("2026-01-01T00:00:00.000Z");
-console.log(snapshot);
-```
-
-Run validation, collection, fault inference, and console rendering end to end:
-
-```bash
-npm run example:hardware
-```
-
-**No real hardware is integrated in v0.6.** The adapters are contracts and
-deterministic virtual implementations only. There is no GPIO, serial, ROS,
-networking, timer, background loop, or asynchronous hardware polling.
-
-## Deterministic multi-robot scenarios
-
-Version 0.7 adds synchronous fleet orchestration while preserving every
-single-robot API. Multi-robot telemetry matters because coordination software,
-fleet dashboards, replay tooling, and fault handling need repeatable data from
-several independently behaving robots long before a physical fleet is
-available.
-
-A `FleetScenarioProfile` assigns a unique fleet robot ID to each reusable
-single-robot `ScenarioProfile`. The fleet duration and step interval form one
-global clock. `FleetScenarioRunner` creates a simulator, stream, and recorder
-per robot, then manually steps them in sorted robot-ID order. The result
-contains each normal `ScenarioRunResult`, aggregate totals and final states,
-and a fleet replay wrapper that preserves the independent per-robot logs.
-
-```ts
-import {
-  getBuiltInFleetScenario,
-  renderFleetScenarioReport,
-  runFleetScenario,
-} from "interstice-telemetry";
-
-const scenario = getBuiltInFleetScenario("mixed-fault-fleet");
-if (!scenario) {
-  throw new Error("Fleet scenario not found");
-}
-
-const result = runFleetScenario(scenario);
-console.log(renderFleetScenarioReport(result));
-console.log(result.fleetReplayLog);
-```
-
-The built-in fleet profiles are:
-
-- `two-robot-patrol`
-- `mixed-fault-fleet`
-- `signal-loss-fleet`
-- `overheat-and-battery-fleet`
-
-Run the complete fleet scenario and replay reporting example:
-
-```bash
-npm run example:fleet
-```
-
-Version 0.7 is a deterministic fleet testbed, not a distributed robot-control
-system. It adds no networking, ROS, real hardware fleet control, timers,
-background loops, or asynchronous polling.
-
-## Experiment artifacts and persistence
-
-Version 0.8 packages a complete scenario or fleet run into a deterministic,
-inspectable directory. Each experiment includes its scenario definition,
-replay data, structured validation, compact telemetry summary, plain-text
-reports, metadata, and a versioned `artifact-index.json`.
-
-Persistence matters for robotics QA because a failure report is useful only
-when the exact configuration and event history that produced it remain
-available. Artifact bundles give local development and future CI/CD jobs one
-portable unit to archive, compare, validate, and replay.
-
-```ts
-import {
-  exportFleetRunArtifacts,
-  getBuiltInFleetScenario,
-  readExperimentArtifacts,
-  runFleetScenario,
-} from "interstice-telemetry";
-
-const scenario = getBuiltInFleetScenario("mixed-fault-fleet");
-if (!scenario) {
-  throw new Error("Fleet scenario not found");
-}
-
-const written = exportFleetRunArtifacts(runFleetScenario(scenario), {
-  rootDir: "artifacts",
-});
-const loaded = readExperimentArtifacts(written.experimentPath);
-
-console.log(written.experimentPath);
-console.log(loaded.metadata);
-```
-
-A fleet export has this layout:
-
-```text
-artifacts/mixed-fault-fleet/
-  artifact-index.json
-  metadata.json
-  fleet-scenario.json
-  fleet-replay-log.json
-  validation.json
-  telemetry-summary.json
-  reports/
-    fleet-report.txt
-    fleet-replay-report.txt
-  timeline/
-    fleet-event-timeline.json
-    fleet-timeline-report.txt
-    fleet-timeline-summary.txt
-  robots/
-    robot-alpha/
-      replay-log.json
-      validation.json
-      reports/
-        scenario-report.txt
-        telemetry-report.txt
-        event-timeline.txt
-        fault-report.txt
-        replay-report.txt
-```
-
-Run the complete export, validation, file listing, and read-back example:
-
-```bash
-npm run example:artifacts
-```
-
-Artifact persistence is local-filesystem only. It adds no database, cloud
-storage, networking, compression, or binary format. JSON is pretty-printed and
-reports reuse the deterministic console renderers, making bundles suitable for
-reproducible experiments and source-controlled or CI-managed robot QA.
-
-## Deterministic adapter event streams
-
-Version 0.9 connects virtual hardware adapters to the existing event, replay,
-reporting, and artifact contracts. `AdapterTelemetryStream` owns a logical
-clock and uses `AdapterTelemetryCollector` to produce the established
-`TelemetrySnapshot` model. It never polls in the background: callers explicitly
-start, step, and stop it.
-
-```ts
-import {
-  AdapterTelemetryStream,
-  ReplayRecorder,
-  VirtualBatteryAdapter,
-  VirtualImuAdapter,
-  VirtualMotorAdapter,
-  VirtualSystemAdapter,
-} from "interstice-telemetry";
-
-const motor = new VirtualMotorAdapter({ id: "drive-motors" });
-const stream = new AdapterTelemetryStream({
-  robotId: "rover-1",
-  battery: new VirtualBatteryAdapter(),
-  motor,
-  imu: new VirtualImuAdapter(),
-  system: new VirtualSystemAdapter(),
-  initialState: "active",
-  startTime: "2026-01-01T00:00:00.000Z",
-  emitReadingChanges: true,
-});
-const recorder = new ReplayRecorder();
-const unsubscribe = stream.subscribe(recorder.record);
-
-recorder.start();
-stream.start();
-stream.step(1_000);
-motor.setStatus("degraded");
-stream.step(1_000);
-stream.stop();
-recorder.stop();
-unsubscribe();
-
-const replayLog = recorder.toLog();
-```
-
-Adapter streams emit:
-
-- `adapter.stream.started`
-- `adapter.stream.stopped`
-- `adapter.telemetry.snapshot`
-- `adapter.status.changed`
-- `adapter.reading.changed`
-
-Status transitions are emitted once on the first step that observes the new
-status. Reading transitions are opt-in with `emitReadingChanges` and ignore the
-reading's status field because status has its own event. Within a step, adapters
-are checked in battery, motor, IMU, and system order; each status event precedes
-that adapter's reading event, and the snapshot is last.
-
-The events use the shared `TelemetryEvent` contract, so `ReplayRecorder`,
-`ReplayPlayer`, `validateReplayLog`, `renderEventTimeline`, and
-`renderReplayReport` work without an adapter-specific replay format. Replay
-logs and generated text reports can be stored by the existing experiment
-artifact pipeline as normal replay-log and report artifacts.
-
-Run the end-to-end adapter, replay, and reporting example:
-
-```bash
-npm run example:adapter-stream
-```
+See [Examples](docs/EXAMPLES.md) for expected behavior and side effects.
 
 ## Current limitations
 
-Version 0.11 still models one robot per simulator, event stream, replay log,
-and adapter stream; fleet support coordinates simulator-backed units through
-a synchronous wrapper. Global timeline order is derived after a run and does
-not add a sequence to live stream events. Adapter changes are observed only on
-explicit steps. Physics is deliberately simple, reports use fixed-layout plain
-text, and hardware adapters are virtual. Persistence is local and
-uncompressed. The SDK does not provide real device or fleet control,
-distributed clock synchronization, databases, cloud storage, networking, ROS,
-background streaming, an interactive or web UI, or environment physics.
+- Simulation physics are deliberately simple.
+- Adapter implementations are virtual; no real device drivers are included.
+- Execution and persistence are synchronous.
+- Playback preserves event order but is not time-paced.
+- Twin reconstruction requires an application-specific pure mapping from
+  telemetry to complete state.
+- A twin timeline permits one complete state per robot timestamp.
+- Scene obstacles are descriptive metadata, not collision geometry.
+- Platform interfaces do not ship integrations.
+- Fleet timelines are derived after a run, not assigned to live events.
+- Persistence uses local JSON and text directories without atomic replacement,
+  compression, integrity digests, or cloud storage.
+- The package is Node.js ESM and the root includes Node filesystem APIs.
+- Report text is intended for humans, not as a machine-readable format.
 
-## Future direction
+## v1.2 direction
 
-The project will grow toward deterministic diagnostics and visualization over
-the global fleet timeline while keeping its simulation, replay, scenario,
-fleet, reporting, artifact, and adapter core transport-independent. See
-[the roadmap](docs/Roadmap.md).
+The next recommended work is JSON Schema and diagnostic validation, explicit
+telemetry-to-state bridges, multi-robot twin views, compatibility fixtures,
+and browser-safe package subpaths. Physics, rendering, robotics middleware,
+hardware I/O, and networking remain external integrations.
 
-Architecture details are in [docs/Architecture.md](docs/Architecture.md).
+See [Roadmap](docs/Roadmap.md).
+
+## Contributing and security
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). The project is licensed under the
+[MIT License](LICENSE).

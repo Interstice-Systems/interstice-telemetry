@@ -63,4 +63,31 @@ describe("exportScenarioRunArtifacts", () => {
       durationMs: result.summary.durationMs,
     });
   });
+
+  it("writes byte-identical evidence for equal deterministic runs", () => {
+    const profile = getBuiltInScenario("motor-overheat");
+    if (profile === undefined) throw new Error("Missing scenario.");
+    const firstRoot = mkdtempSync(join(tmpdir(), "interstice-artifact-a-"));
+    const secondRoot = mkdtempSync(join(tmpdir(), "interstice-artifact-b-"));
+    directories.push(firstRoot, secondRoot);
+
+    const first = exportScenarioRunArtifacts(runScenario(profile), {
+      rootDir: firstRoot,
+    });
+    const second = exportScenarioRunArtifacts(runScenario(profile), {
+      rootDir: secondRoot,
+    });
+
+    for (const path of [
+      "artifact-index.json",
+      "metadata.json",
+      "replay-log.json",
+      "telemetry-summary.json",
+      "reports/scenario-report.txt",
+    ]) {
+      expect(readFileSync(join(first.experimentPath, path), "utf8")).toBe(
+        readFileSync(join(second.experimentPath, path), "utf8"),
+      );
+    }
+  });
 });

@@ -1,3 +1,16 @@
+/**
+ * Interstice Telemetry public SDK entry point.
+ *
+ * Export stability is documented in `docs/API_STABILITY.md`. An export being
+ * available from this module does not by itself make it stable: newer
+ * adapter-stream and fleet-timeline contracts remain experimental, while a
+ * small set of low-level construction and formatting helpers are internal
+ * candidates retained for prerelease compatibility.
+ *
+ * @packageDocumentation
+ */
+
+/** Deterministic clock contracts and implementations. */
 export { validateClock } from "./clock/clockValidator.js";
 export { FleetClock } from "./clock/fleetClock.js";
 export type { FleetClockOptions } from "./clock/fleetClock.js";
@@ -15,6 +28,8 @@ export type {
   ClockValidationResult,
   DeterministicClock,
 } from "./clock/clockTypes.js";
+
+/** Experiment artifact models, persistence, and exporters. */
 export {
   createArtifactMetadataDocument,
   createExperimentArtifactBundle,
@@ -61,6 +76,8 @@ export {
   createScenarioTelemetrySummary,
   exportScenarioRunArtifacts,
 } from "./artifacts/scenarioArtifactExporter.js";
+
+/** Pure terminal and text report renderers. */
 export type {
   ConsoleReport,
   EventTimelineOptions,
@@ -77,6 +94,8 @@ export {
 export { renderReplayReport } from "./console/replayReport.js";
 export { renderScenarioReport } from "./console/scenarioReport.js";
 export { renderTelemetrySnapshot } from "./console/telemetryReport.js";
+
+/** Deterministic telemetry event contracts and streams. */
 export { TELEMETRY_EVENT_TYPES } from "./events/eventTypes.js";
 export type {
   FaultInjectedPayload,
@@ -89,9 +108,13 @@ export type {
 } from "./events/eventTypes.js";
 export { TelemetryStream } from "./events/telemetryStream.js";
 export type { TelemetryStreamStatus } from "./events/telemetryStream.js";
+
+/** Fault models and deterministic fault application. */
 export { FaultInjector } from "./faults/faultInjector.js";
 export { FAULT_TYPES } from "./faults/faultTypes.js";
 export type { Fault, FaultType } from "./faults/faultTypes.js";
+
+/** Deterministic multi-robot scenarios and fleet replay. */
 export {
   BUILT_IN_FLEET_SCENARIO_IDS,
   BUILT_IN_FLEET_SCENARIOS,
@@ -123,6 +146,8 @@ export type {
   FleetValidationResult,
 } from "./fleet/fleetTypes.js";
 export { validateFleetScenario } from "./fleet/fleetValidator.js";
+
+/** Hardware adapter contracts, virtual adapters, and adapter telemetry. */
 export { AdapterTelemetryCollector } from "./hardware/adapterTelemetryCollector.js";
 export type {
   AdapterTelemetryCollectorOptions,
@@ -167,7 +192,11 @@ export { VirtualMotorAdapter } from "./hardware/virtualMotorAdapter.js";
 export type { VirtualMotorAdapterOptions } from "./hardware/virtualMotorAdapter.js";
 export { VirtualSystemAdapter } from "./hardware/virtualSystemAdapter.js";
 export type { VirtualSystemAdapterOptions } from "./hardware/virtualSystemAdapter.js";
+
+/** Snapshot serialization utility. */
 export { snapshotToJson } from "./output/jsonOutput.js";
+
+/** Replay recording, validation, serialization, and playback. */
 export {
   deserializeReplayLog,
   REPLAY_LOG_VERSION,
@@ -183,6 +212,8 @@ export type {
 } from "./replay/replayRecorder.js";
 export { validateReplayLog } from "./replay/replayValidator.js";
 export type { ReplayValidationResult } from "./replay/replayValidator.js";
+
+/** Reusable deterministic single-robot scenarios. */
 export {
   BUILT_IN_SCENARIO_IDS,
   BUILT_IN_SCENARIOS,
@@ -201,16 +232,21 @@ export type {
   ScheduledFault,
 } from "./scenarios/scenarioTypes.js";
 export { validateScenarioProfile } from "./scenarios/scenarioValidator.js";
+
+/** Deterministic robot simulation and seeded random generation. */
 export { RobotSimulator } from "./simulator/robotSimulator.js";
 export type { RobotSimulatorOptions } from "./simulator/robotSimulator.js";
 export { createSeededRandom } from "./simulator/seed.js";
 export type { RandomSource } from "./simulator/seed.js";
 export type {
   ImuTelemetry,
-  RobotState,
   TelemetrySnapshot,
   Vector3,
 } from "./types.js";
+/** @deprecated Use `RobotOperatingMode`; renamed in v1.1 to free `RobotState`. */
+export type { RobotState as RobotOperatingMode } from "./types.js";
+
+/** Derived global fleet timelines, queries, validation, and reports. */
 export {
   deserializeFleetEventTimeline,
   serializeFleetEventTimeline,
@@ -240,3 +276,121 @@ export type {
 export {
   validateFleetEventTimeline,
 } from "./timeline/timelineValidator.js";
+
+/** Immutable digital-twin structure and deterministic JSON primitives. */
+export {
+  deterministicEqual,
+  deterministicStringify,
+  parseImmutableJson,
+  toImmutableJson,
+} from "./digitalTwin/deterministicJson.js";
+export type {
+  JsonPrimitive,
+  JsonValue,
+} from "./digitalTwin/deterministicJson.js";
+export {
+  createRobot,
+  deserializeRobot,
+  DIGITAL_TWIN_MODEL_VERSION,
+  serializeRobot,
+  STANDARD_JOINT_TYPES,
+} from "./digitalTwin/model.js";
+export type {
+  Actuator,
+  Attachment,
+  CoordinateFrame,
+  Joint,
+  JointLimit,
+  Link,
+  Quaternion,
+  Robot,
+  RobotInput,
+  RobotMetadata,
+  Sensor,
+  StandardJointType,
+  Transform,
+  Vector3 as DigitalTwinVector3,
+} from "./digitalTwin/model.js";
+
+/** Complete immutable robot state snapshots. */
+export {
+  createRobotState,
+  deserializeRobotState,
+  ROBOT_STATE_VERSION,
+  robotStatesEqual,
+  serializeRobotState,
+} from "./digitalTwin/robotState.js";
+export type {
+  BatteryStatus,
+  HealthIndicator,
+  JointState,
+  Pose,
+  RobotState,
+  RobotStateInput,
+} from "./digitalTwin/robotState.js";
+
+/** Deterministic environment metadata. */
+export {
+  createScene,
+  deserializeScene,
+  SCENE_MODEL_VERSION,
+  serializeScene,
+  STANDARD_SCENE_TYPES,
+} from "./digitalTwin/scene.js";
+export type {
+  Landmark,
+  Scene,
+  SceneAnnotation,
+  SceneCoordinateSystem,
+  SceneInput,
+  SceneRegion,
+  StandardSceneType,
+  StaticObstacle,
+} from "./digitalTwin/scene.js";
+
+/** Ordered markers for replay inspection and future visualization. */
+export {
+  compareReplayEvents,
+  createReplayEvent,
+  deserializeReplayEvents,
+  REPLAY_EVENT_VERSION,
+  serializeReplayEvents,
+  STANDARD_REPLAY_EVENT_TYPES,
+} from "./digitalTwin/replayEvent.js";
+export type {
+  ReplayEvent,
+  ReplayEventInput,
+  StandardReplayEventType,
+} from "./digitalTwin/replayEvent.js";
+
+/** Robot-state timeline reconstruction, persistence, and inspection. */
+export {
+  createTwinTimeline,
+  deserializeTwinTimeline,
+  reconstructTwinTimeline,
+  serializeTwinTimeline,
+  TWIN_TIMELINE_VERSION,
+  TwinReplayCursor,
+} from "./digitalTwin/twinTimeline.js";
+export type {
+  RobotStateReconstructor,
+  TwinTelemetryRecord,
+  TwinTimeline,
+  TwinTimelineInput,
+} from "./digitalTwin/twinTimeline.js";
+
+/** Future platform extension points; no integrations are implemented. */
+export type {
+  DigitalTwinContext,
+  FleetVisualization,
+  GazeboAdapter,
+  NVIDIAIsaacAdapter,
+  PhysicsEngine,
+  PlatformAdapterInfo,
+  Renderer,
+  RoboticsPlatformAdapter,
+  ROSAdapter,
+  SimulationRuntime,
+  UnityAdapter,
+  UnrealAdapter,
+} from "./digitalTwin/platform.js";

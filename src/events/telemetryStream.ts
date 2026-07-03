@@ -11,6 +11,7 @@ import type {
   TelemetryEventType,
   TelemetrySnapshotPayload,
 } from "./eventTypes.js";
+import { cloneTelemetryEvent } from "./cloneEvent.js";
 
 export type TelemetryStreamStatus = "running" | "stopped";
 
@@ -114,7 +115,7 @@ export class TelemetryStream {
     };
 
     for (const handler of [...this.handlers]) {
-      handler(event);
+      handler(cloneTelemetryEvent(event));
     }
   }
 }

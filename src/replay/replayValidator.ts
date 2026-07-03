@@ -1,4 +1,5 @@
 import { TELEMETRY_EVENT_TYPES } from "../events/eventTypes.js";
+import { REPLAY_LOG_VERSION } from "./replayLog.js";
 
 export interface ReplayValidationResult {
   valid: boolean;
@@ -35,6 +36,10 @@ export const validateReplayLog = (
 
   if (!hasNonEmptyString(log, "version")) {
     errors.push("Replay log version is required.");
+  } else if (log.version !== REPLAY_LOG_VERSION) {
+    errors.push(
+      `Unsupported replay log version "${log.version}"; expected "${REPLAY_LOG_VERSION}".`,
+    );
   }
 
   if (!hasNonEmptyString(log, "robotId")) {
@@ -64,6 +69,8 @@ export const validateReplayLog = (
   }
 
   let previousSequence: number | undefined;
+  let previousTimestamp: number | undefined;
+  const eventIds = new Set<string>();
 
   log.events.forEach((event: unknown, index: number) => {
     const label = `Event at index ${index}`;
@@ -75,6 +82,10 @@ export const validateReplayLog = (
 
     if (!hasNonEmptyString(event, "id")) {
       errors.push(`${label} must have a non-empty id.`);
+    } else if (eventIds.has(event.id as string)) {
+      errors.push(`${label} has duplicate id "${String(event.id)}".`);
+    } else {
+      eventIds.add(event.id as string);
     }
 
     if (!hasNonEmptyString(event, "type")) {
@@ -85,9 +96,18 @@ export const validateReplayLog = (
 
     if (
       typeof event.timestamp !== "number" ||
-      !Number.isFinite(event.timestamp)
+      !Number.isFinite(event.timestamp) ||
+      event.timestamp < 0
     ) {
-      errors.push(`${label} must have a finite numeric timestamp.`);
+      errors.push(`${label} must have a non-negative finite timestamp.`);
+    } else {
+      if (
+        previousTimestamp !== undefined &&
+        event.timestamp < previousTimestamp
+      ) {
+        errors.push(`${label} timestamp must not move backward.`);
+      }
+      previousTimestamp = event.timestamp;
     }
 
     if (!hasNonEmptyString(event, "robotId")) {
@@ -103,9 +123,10 @@ export const validateReplayLog = (
 
     if (
       typeof event.sequence !== "number" ||
-      !Number.isInteger(event.sequence)
+      !Number.isInteger(event.sequence) ||
+      event.sequence < 1
     ) {
-      errors.push(`${label} must have an integer sequence.`);
+      errors.push(`${label} must have a positive integer sequence.`);
     } else {
       if (
         previousSequence !== undefined &&

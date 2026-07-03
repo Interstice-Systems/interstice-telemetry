@@ -1,0 +1,13 @@
+{
+  "annotations": [{ "id": "dock-note", "position": { "x": 1, "y": 1, "z": 1 }, "semanticLabels": ["instruction"], "text": "Loading dock" }],
+  "coordinateSystem": { "frameId": "world", "handedness": "right", "lengthUnit": "meter", "upAxis": "z" },
+  "id": "warehouse-1",
+  "landmarks": [{ "id": "dock", "name": "Dock", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 1, "y": 1, "z": 0 } }, "semanticLabels": ["loading"] }],
+  "metadata": {},
+  "name": "Example Warehouse",
+  "regions": [{ "boundary": [{ "x": 0, "y": 0, "z": 0 }, { "x": 10, "y": 0, "z": 0 }, { "x": 10, "y": 3, "z": 0 }, { "x": 0, "y": 3, "z": 0 }], "id": "aisle-a", "name": "Aisle A", "semanticLabels": ["driveable"] }],
+  "schemaVersion": "1.0.0",
+  "semanticLabels": ["indoor", "logistics"],
+  "staticObstacles": [{ "id": "shelf-a", "name": "Shelf A", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 5, "y": 4, "z": 0 } }, "semanticLabels": ["storage"], "shape": { "size": [4, 1, 2], "type": "box" } }],
+  "type": "warehouse"
+}

@@ -1,4 +1,5 @@
 import type { ReplayClock } from "../clock/replayClock.js";
+import { cloneTelemetryEvent } from "../events/cloneEvent.js";
 import type {
   TelemetryEvent,
   TelemetryEventHandler,
@@ -17,7 +18,7 @@ export class ReplayPlayer {
     log: ReplayLog,
     private readonly clock?: ReplayClock,
   ) {
-    this.events = [...log.events];
+    this.events = log.events.map(cloneTelemetryEvent);
   }
 
   start(): void {
@@ -47,14 +48,14 @@ export class ReplayPlayer {
     this.currentIndex += 1;
 
     for (const handler of [...this.handlers]) {
-      handler(event);
+      handler(cloneTelemetryEvent(event));
     }
 
     if (this.currentIndex === this.events.length) {
       this.status = "stopped";
     }
 
-    return event;
+    return cloneTelemetryEvent(event);
   }
 
   playAll(): TelemetryEvent[] {

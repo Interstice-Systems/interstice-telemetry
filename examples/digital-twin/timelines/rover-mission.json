@@ -1,0 +1,55 @@
+{
+  "clockDomain": "unix-ms",
+  "events": [
+    { "id": "mission-start", "metadata": {}, "robotId": "diff-drive-1", "schemaVersion": "1.0.0", "sequence": 1, "timestamp": 1000, "type": "mission.started" },
+    { "id": "battery-warning", "label": "Battery below mission threshold", "metadata": { "threshold": 0.5 }, "robotId": "diff-drive-1", "schemaVersion": "1.0.0", "sequence": 2, "timestamp": 3000, "type": "battery.warning" },
+    { "id": "mission-complete", "metadata": {}, "robotId": "diff-drive-1", "schemaVersion": "1.0.0", "sequence": 3, "timestamp": 4000, "type": "mission.completed" }
+  ],
+  "metadata": { "scenario": "movement-battery-sensors" },
+  "robotId": "diff-drive-1",
+  "schemaVersion": "1.0.0",
+  "states": [
+    {
+      "actuatorOutputs": { "left_motor": 0.4, "right_motor": 0.4 },
+      "angularVelocity": { "x": 0, "y": 0, "z": 0 },
+      "batteryStatus": { "charge": 0.9, "voltage": 24 },
+      "globalPose": { "frameId": "world", "orientation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "position": { "x": 0, "y": 0, "z": 0 } },
+      "healthIndicators": [{ "id": "system", "level": "nominal" }],
+      "jointStates": { "left-wheel-joint": { "position": 0, "velocity": 1 }, "right-wheel-joint": { "position": 0, "velocity": 1 } },
+      "linearVelocity": { "x": 1, "y": 0, "z": 0 },
+      "metadata": { "mode": "autonomous" },
+      "robotId": "diff-drive-1",
+      "schemaVersion": "1.0.0",
+      "sensorValues": { "imu": { "yawRate": 0 } },
+      "timestamp": 1000
+    },
+    {
+      "actuatorOutputs": { "left_motor": 0.5, "right_motor": 0.5 },
+      "angularVelocity": { "x": 0, "y": 0, "z": 0 },
+      "batteryStatus": { "charge": 0.7, "voltage": 23.5 },
+      "globalPose": { "frameId": "world", "orientation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "position": { "x": 2, "y": 0, "z": 0 } },
+      "healthIndicators": [{ "id": "system", "level": "nominal" }],
+      "jointStates": { "left-wheel-joint": { "position": 2, "velocity": 1 }, "right-wheel-joint": { "position": 2, "velocity": 1 } },
+      "linearVelocity": { "x": 1, "y": 0, "z": 0 },
+      "metadata": { "mode": "autonomous" },
+      "robotId": "diff-drive-1",
+      "schemaVersion": "1.0.0",
+      "sensorValues": { "imu": { "yawRate": 0 }, "odometry": { "distance": 2 } },
+      "timestamp": 2000
+    },
+    {
+      "actuatorOutputs": { "left_motor": 0, "right_motor": 0 },
+      "angularVelocity": { "x": 0, "y": 0, "z": 0 },
+      "batteryStatus": { "charge": 0.45, "voltage": 22.8 },
+      "globalPose": { "frameId": "world", "orientation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "position": { "x": 3, "y": 0, "z": 0 } },
+      "healthIndicators": [{ "id": "battery", "level": "warning", "message": "Below mission threshold" }],
+      "jointStates": { "left-wheel-joint": { "position": 3, "velocity": 0 }, "right-wheel-joint": { "position": 3, "velocity": 0 } },
+      "linearVelocity": { "x": 0, "y": 0, "z": 0 },
+      "metadata": { "mode": "idle" },
+      "robotId": "diff-drive-1",
+      "schemaVersion": "1.0.0",
+      "sensorValues": { "imu": { "yawRate": 0 }, "odometry": { "distance": 3 } },
+      "timestamp": 4000
+    }
+  ]
+}

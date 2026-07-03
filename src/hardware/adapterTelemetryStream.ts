@@ -1,6 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
 
 import type { DeterministicClock } from "../clock/clockTypes.js";
+import { cloneTelemetryEvent } from "../events/cloneEvent.js";
 import type { TelemetrySnapshot } from "../types.js";
 import {
   AdapterTelemetryCollector,
@@ -215,7 +216,7 @@ export class AdapterTelemetryStream {
     };
 
     for (const handler of [...this.handlers]) {
-      handler(event);
+      handler(cloneTelemetryEvent(event) as AdapterTelemetryEvent);
     }
   }
 }

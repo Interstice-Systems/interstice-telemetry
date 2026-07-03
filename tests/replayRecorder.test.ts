@@ -54,7 +54,7 @@ describe("ReplayRecorder", () => {
     ]);
   });
 
-  it("preserves original events and sequence numbers", () => {
+  it("preserves event values and sequence numbers behind a copy boundary", () => {
     const recorder = new ReplayRecorder();
     const first = event(4);
     const second = event(9);
@@ -65,8 +65,12 @@ describe("ReplayRecorder", () => {
 
     const recorded = recorder.getEvents();
     expect(recorded).toEqual([first, second]);
-    expect(recorded[0]).toBe(first);
+    expect(recorded[0]).not.toBe(first);
     expect(recorded.map(({ sequence }) => sequence)).toEqual([4, 9]);
+
+    (first.payload as { sequence: number }).sequence = 100;
+    (recorded[0]!.payload as { sequence: number }).sequence = 200;
+    expect(recorder.getEvents()[0]!.payload).toEqual({ sequence: 4 });
   });
 
   it("clears all recorded events", () => {
@@ -98,5 +102,16 @@ describe("ReplayRecorder", () => {
       events: [event(1), event(2)],
       metadata: { run: "unit-test" },
     });
+  });
+
+  it("returns independent replay logs", () => {
+    const recorder = new ReplayRecorder();
+    recorder.start();
+    recorder.record(event(1));
+
+    const first = recorder.toLog();
+    (first.events[0]!.payload as { sequence: number }).sequence = 99;
+
+    expect(recorder.toLog().events[0]!.payload).toEqual({ sequence: 1 });
   });
 });

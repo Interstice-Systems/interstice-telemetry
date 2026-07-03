@@ -84,5 +84,16 @@ describe("buildFleetEventTimeline", () => {
 
     expect(log).toEqual(before);
   });
-});
 
+  it("produces the same timeline for different robot-log insertion order", () => {
+    const first = fleetLog();
+    const second = structuredClone(first);
+    second.robotLogs = Object.fromEntries(
+      Object.entries(second.robotLogs).reverse(),
+    );
+
+    expect(buildFleetEventTimeline(second)).toEqual(
+      buildFleetEventTimeline(first),
+    );
+  });
+});

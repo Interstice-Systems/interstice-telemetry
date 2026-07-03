@@ -1,0 +1,13 @@
+{
+  "annotations": [],
+  "coordinateSystem": { "frameId": "course", "handedness": "right", "lengthUnit": "meter", "upAxis": "z" },
+  "id": "obstacle-course-1",
+  "landmarks": [{ "id": "finish", "name": "Finish", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 20, "y": 0, "z": 0 } }, "semanticLabels": ["finish"] }],
+  "metadata": { "difficulty": "basic" },
+  "name": "Example Obstacle Course",
+  "regions": [{ "boundary": [{ "x": 0, "y": -2, "z": 0 }, { "x": 20, "y": -2, "z": 0 }, { "x": 20, "y": 2, "z": 0 }, { "x": 0, "y": 2, "z": 0 }], "id": "course-lane", "name": "Course Lane", "semanticLabels": ["test-area"] }],
+  "schemaVersion": "1.0.0",
+  "semanticLabels": ["outdoor", "test"],
+  "staticObstacles": [{ "id": "barrier", "name": "Barrier", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 8, "y": 0, "z": 0 } }, "semanticLabels": ["obstacle"], "shape": { "radius": 0.5, "type": "cylinder" } }],
+  "type": "outdoor-field"
+}

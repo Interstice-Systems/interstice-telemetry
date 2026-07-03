@@ -1,0 +1,63 @@
+{
+  "actuators": [
+    {
+      "id": "drive",
+      "jointIds": ["left-wheel-joint", "right-wheel-joint"],
+      "name": "Differential Drive",
+      "type": "velocity"
+    }
+  ],
+  "attachments": [],
+  "frames": [
+    {
+      "id": "base",
+      "name": "Base",
+      "transformToParent": {
+        "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 },
+        "translation": { "x": 0, "y": 0, "z": 0 }
+      }
+    }
+  ],
+  "id": "diff-drive-1",
+  "joints": [
+    {
+      "axis": { "x": 0, "y": 1, "z": 0 },
+      "childLinkId": "left-wheel",
+      "id": "left-wheel-joint",
+      "name": "Left Wheel Joint",
+      "origin": {
+        "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 },
+        "translation": { "x": 0, "y": 0.25, "z": 0 }
+      },
+      "parentLinkId": "chassis",
+      "type": "continuous"
+    },
+    {
+      "axis": { "x": 0, "y": 1, "z": 0 },
+      "childLinkId": "right-wheel",
+      "id": "right-wheel-joint",
+      "name": "Right Wheel Joint",
+      "origin": {
+        "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 },
+        "translation": { "x": 0, "y": -0.25, "z": 0 }
+      },
+      "parentLinkId": "chassis",
+      "type": "continuous"
+    }
+  ],
+  "links": [
+    { "frameId": "base", "id": "chassis", "name": "Chassis" },
+    { "frameId": "base", "id": "left-wheel", "name": "Left Wheel" },
+    { "frameId": "base", "id": "right-wheel", "name": "Right Wheel" }
+  ],
+  "metadata": {
+    "description": "Minimal differential-drive example",
+    "name": "Example Rover",
+    "tags": ["example", "ground"]
+  },
+  "rootFrameId": "base",
+  "schemaVersion": "1.0.0",
+  "sensors": [
+    { "frameId": "base", "id": "imu", "name": "IMU", "type": "imu" }
+  ]
+}

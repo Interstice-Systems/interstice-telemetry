@@ -1,0 +1,32 @@
+{
+  "actuators": [
+    { "id": "legs", "jointIds": ["left-hip", "right-hip"], "name": "Leg Actuators", "type": "position" }
+  ],
+  "attachments": [],
+  "frames": [
+    {
+      "id": "pelvis",
+      "name": "Pelvis",
+      "transformToParent": {
+        "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 },
+        "translation": { "x": 0, "y": 0, "z": 0 }
+      }
+    }
+  ],
+  "id": "humanoid-1",
+  "joints": [
+    { "axis": { "x": 0, "y": 1, "z": 0 }, "childLinkId": "left-leg", "id": "left-hip", "name": "Left Hip", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 0, "y": 0.1, "z": -0.1 } }, "parentLinkId": "torso", "type": "revolute" },
+    { "axis": { "x": 0, "y": 1, "z": 0 }, "childLinkId": "right-leg", "id": "right-hip", "name": "Right Hip", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 0, "y": -0.1, "z": -0.1 } }, "parentLinkId": "torso", "type": "revolute" }
+  ],
+  "links": [
+    { "frameId": "pelvis", "id": "torso", "name": "Torso" },
+    { "frameId": "pelvis", "id": "left-leg", "name": "Left Leg" },
+    { "frameId": "pelvis", "id": "right-leg", "name": "Right Leg" }
+  ],
+  "metadata": { "description": "Minimal skeleton, not an anatomical model", "name": "Example Humanoid", "tags": ["example", "humanoid"] },
+  "rootFrameId": "pelvis",
+  "schemaVersion": "1.0.0",
+  "sensors": [
+    { "frameId": "pelvis", "id": "torso-imu", "name": "Torso IMU", "type": "imu" }
+  ]
+}

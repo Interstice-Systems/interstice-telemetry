@@ -49,6 +49,8 @@ const serializeContent = (
     throw new TypeError(`JSON artifact "${file.path}" has no content.`);
   }
 
+  // Fixed indentation and trailing newlines make equal structured inputs
+  // byte-for-byte equal. Object key order remains the caller's insertion order.
   const serialized = JSON.stringify(content, undefined, 2);
 
   if (serialized === undefined) {

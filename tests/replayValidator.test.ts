@@ -43,6 +43,15 @@ describe("validateReplayLog", () => {
     );
   });
 
+  it("rejects unsupported format versions", () => {
+    const log = createLog();
+    log.version = "99.0.0";
+
+    expect(validateReplayLog(log).errors).toContain(
+      'Unsupported replay log version "99.0.0"; expected "0.3.0".',
+    );
+  });
+
   it("fails for non-increasing event sequences", () => {
     const log = createLog();
     log.events[1] = createEvent(1);
@@ -86,6 +95,23 @@ describe("validateReplayLog", () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
       "Replay log createdAt must be a valid date string.",
+    );
+  });
+
+  it("rejects backward timestamps and duplicate event IDs", () => {
+    const log = createLog();
+    log.events[1] = {
+      ...createEvent(2),
+      id: log.events[0]!.id,
+      timestamp: 0,
+    };
+
+    const result = validateReplayLog(log);
+    expect(result.errors).toContain(
+      'Event at index 1 has duplicate id "validator-rover:1".',
+    );
+    expect(result.errors).toContain(
+      "Event at index 1 timestamp must not move backward.",
     );
   });
 

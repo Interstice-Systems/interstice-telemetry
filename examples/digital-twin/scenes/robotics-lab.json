@@ -1,0 +1,13 @@
+{
+  "annotations": [{ "id": "safety-note", "position": { "x": 0, "y": 0, "z": 1.5 }, "semanticLabels": ["safety"], "text": "Authorized operators only" }],
+  "coordinateSystem": { "frameId": "lab", "handedness": "right", "lengthUnit": "meter", "upAxis": "z" },
+  "id": "robotics-lab-1",
+  "landmarks": [{ "id": "origin-marker", "name": "Origin Marker", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 0, "y": 0, "z": 0 } }, "semanticLabels": ["calibration"] }],
+  "metadata": {},
+  "name": "Example Robotics Lab",
+  "regions": [{ "boundary": [{ "x": -2, "y": -2, "z": 0 }, { "x": 2, "y": -2, "z": 0 }, { "x": 2, "y": 2, "z": 0 }, { "x": -2, "y": 2, "z": 0 }], "id": "test-cell", "name": "Test Cell", "semanticLabels": ["restricted", "test-area"] }],
+  "schemaVersion": "1.0.0",
+  "semanticLabels": ["indoor", "research"],
+  "staticObstacles": [{ "id": "workbench", "name": "Workbench", "pose": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 3, "y": 1, "z": 0 } }, "semanticLabels": ["furniture"], "shape": { "size": [2, 0.8, 1], "type": "box" } }],
+  "type": "laboratory"
+}

@@ -26,6 +26,8 @@ export const buildFleetEventTimeline = (
         }),
       ),
     )
+    // This total order is part of the deterministic timeline contract. Keep
+    // the validator and docs/DETERMINISM.md aligned with any future change.
     .sort(
       (left, right) =>
         left.timestamp - right.timestamp ||

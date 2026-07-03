@@ -108,6 +108,24 @@ describe("TelemetryStream", () => {
     expect(run()).toEqual(run());
   });
 
+  it("isolates each subscriber from event mutation", () => {
+    const stream = new TelemetryStream(new RobotSimulator());
+    const observed: TelemetryEvent[] = [];
+
+    stream.subscribe((event) => {
+      event.id = "mutated";
+      (event.payload as { status: string }).status = "mutated";
+    });
+    stream.subscribe((event) => observed.push(event));
+
+    stream.start();
+
+    expect(observed[0]).toMatchObject({
+      id: "robot-001:1",
+      payload: { status: "running" },
+    });
+  });
+
   it("emits fault.injected for a low battery fault", () => {
     const stream = new TelemetryStream(new RobotSimulator());
     const { events } = collectEvents(stream);

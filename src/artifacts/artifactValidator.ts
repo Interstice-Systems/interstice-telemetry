@@ -4,6 +4,7 @@ import {
   EXPERIMENT_ARTIFACT_FILE_KINDS,
   EXPERIMENT_ARTIFACT_FORMATS,
   EXPERIMENT_ARTIFACT_KINDS,
+  EXPERIMENT_ARTIFACT_VERSION,
   type ExperimentArtifactValidationResult,
 } from "./artifactTypes.js";
 
@@ -42,6 +43,10 @@ export const validateExperimentArtifactBundle = (
 
   if (!isNonEmptyString(bundle.version)) {
     errors.push("Experiment artifact bundle version is required.");
+  } else if (bundle.version !== EXPERIMENT_ARTIFACT_VERSION) {
+    errors.push(
+      `Unsupported experiment artifact version "${bundle.version}"; expected "${EXPERIMENT_ARTIFACT_VERSION}".`,
+    );
   }
 
   if (!isNonEmptyString(bundle.experimentId)) {

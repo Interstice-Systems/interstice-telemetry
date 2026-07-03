@@ -229,6 +229,24 @@ describe("AdapterTelemetryStream", () => {
     );
   });
 
+  it("isolates each subscriber from adapter event mutation", () => {
+    const stream = new AdapterTelemetryStream(createOptions());
+    const observed: TelemetryEvent[] = [];
+
+    stream.subscribe((event) => {
+      event.id = "mutated";
+      (event.payload as { status: string }).status = "mutated";
+    });
+    stream.subscribe((event) => observed.push(event));
+
+    stream.start();
+
+    expect(observed[0]).toMatchObject({
+      id: "adapter-rover:1",
+      payload: { status: "running" },
+    });
+  });
+
   it("records, validates, and deterministically replays adapter events", () => {
     const stream = new AdapterTelemetryStream(createOptions());
     const recorder = new ReplayRecorder();

@@ -1,4 +1,5 @@
 import type { TelemetryEvent } from "../events/eventTypes.js";
+import { cloneTelemetryEvent } from "../events/cloneEvent.js";
 import {
   REPLAY_LOG_VERSION,
   type ReplayLog,
@@ -46,7 +47,7 @@ export class ReplayRecorder {
 
   record = (event: TelemetryEvent): void => {
     if (this.status === "active") {
-      this.events.push(event);
+      this.events.push(cloneTelemetryEvent(event));
     }
   };
 
@@ -74,13 +75,15 @@ export class ReplayRecorder {
       createdAt,
       ...(this.options.seed === undefined ? {} : { seed: this.options.seed }),
       eventCount: this.events.length,
-      events: [...this.events],
-      ...(metadata === undefined ? {} : { metadata: { ...metadata } }),
+      events: this.events.map(cloneTelemetryEvent),
+      ...(metadata === undefined
+        ? {}
+        : { metadata: structuredClone(metadata) }),
     };
   }
 
   getEvents(): TelemetryEvent[] {
-    return [...this.events];
+    return this.events.map(cloneTelemetryEvent);
   }
 
   getStatus(): ReplayRecorderStatus {

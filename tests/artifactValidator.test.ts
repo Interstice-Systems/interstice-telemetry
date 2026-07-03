@@ -34,6 +34,15 @@ describe("validateExperimentArtifactBundle", () => {
     );
   });
 
+  it("rejects unsupported artifact versions", () => {
+    const bundle = validBundle();
+    bundle.version = "99.0.0";
+
+    expect(validateExperimentArtifactBundle(bundle).errors).toContain(
+      'Unsupported experiment artifact version "99.0.0"; expected "0.8.0".',
+    );
+  });
+
   it("rejects empty robot IDs", () => {
     const bundle = validBundle();
     bundle.metadata.robotIds = [];

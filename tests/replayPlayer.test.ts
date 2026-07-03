@@ -44,17 +44,18 @@ describe("ReplayPlayer", () => {
     expect(player.getCurrentIndex()).toBe(0);
   });
 
-  it("steps through original event objects in exact order", () => {
+  it("steps through independent event copies in exact order", () => {
     const player = new ReplayPlayer(createLog());
     const emitted: TelemetryEvent[] = [];
     player.subscribe((event) => emitted.push(event));
 
     player.start();
-    expect(player.step()).toBe(events[0]);
-    expect(player.step()).toBe(events[1]);
-    expect(player.step()).toBe(events[2]);
+    expect(player.step()).toEqual(events[0]);
+    expect(player.step()).toEqual(events[1]);
+    expect(player.step()).toEqual(events[2]);
 
     expect(emitted).toEqual(events);
+    expect(emitted[0]).not.toBe(events[0]);
     expect(player.getCurrentIndex()).toBe(3);
   });
 
@@ -98,5 +99,23 @@ describe("ReplayPlayer", () => {
 
     expect(first).toEqual([events[0]]);
     expect(second).toEqual([events[0]]);
+  });
+
+  it("isolates the source log and subscribers from replay mutation", () => {
+    const log = createLog();
+    const player = new ReplayPlayer(log);
+    const observed: TelemetryEvent[] = [];
+
+    player.subscribe((event) => {
+      event.id = "mutated";
+      (event.payload as { sequence: number }).sequence = 99;
+    });
+    player.subscribe((event) => observed.push(event));
+    player.start();
+    const returned = player.step()!;
+    returned.id = "returned-mutation";
+
+    expect(observed[0]).toEqual(events[0]);
+    expect(log.events[0]).toEqual(events[0]);
   });
 });

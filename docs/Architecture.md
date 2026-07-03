@@ -1,530 +1,196 @@
 # Architecture
 
-Interstice Telemetry v0.11 is split into fourteen small layers.
+Interstice Telemetry is a synchronous evidence pipeline for repeatable robotics
+experiments. Plain data contracts move through small layers; scheduling,
+transport, middleware, and device I/O remain outside the core.
 
-## Deterministic clock layer
-
-The clock layer centralizes explicit, inspectable time without adding
-scheduling. `DeterministicClock` defines `now`, `step`, `reset`, and `getInfo`;
-all operations are synchronous and deterministic. `ClockInfo` exposes stable
-identity, clock kind, current milliseconds, step count, and optional metadata.
-`validateClock` checks clock behavior and information through structured
-errors and warnings.
-
-Four implementations serve distinct timeline roles:
-
-- `SimulationClock` advances elapsed time by caller-provided deltas.
-- `LogicalClock` adds fixed-size logical ticks for deterministic ordering when
-  physical elapsed time is secondary.
-- `ReplayClock` copies event timestamps and advances through them without
-  modifying the replay events.
-- `FleetClock` advances once per global fleet step, independent of robot count.
-
-Clocks integrate additively. Streams and runners accept optional clocks, while
-their existing internal time behavior remains unchanged when no clock is
-provided. A clock-backed telemetry or adapter stream advances its clock only
-for a successful running step. A scenario clock advances once per scenario
-step; a fleet clock advances once after all robots complete a global step.
-`ReplayPlayer` can advance a supplied `ReplayClock` alongside the replay
-cursor. Experiment metadata can retain a `ClockInfo` snapshot.
-
-This layer provides the common time basis used by derived cross-robot fleet
-ordering and later diagnostics. It is deliberately not a wall-clock
-scheduler and contains no timers, waits, background work, network clock
-synchronization, NTP/PTP, ROS time, or hardware polling.
-
-## Simulator
-
-`RobotSimulator` retains its existing internal timestamp and baseline state.
-Calling `step` moves that timestamp forward, updates battery and motor
-temperature, and samples the next snapshot from a seeded pseudo-random source.
-An optional external deterministic clock can coordinate the surrounding stream
-or runner without rewriting simulator behavior. Equal configuration and
-operation sequences therefore produce equal output.
-
-## Telemetry snapshot model
-
-`TelemetrySnapshot` is the stable data contract. It contains identity, time,
-power, motor, compute, communications, IMU, and robot-state values. Snapshots
-are plain objects so consumers can store or transform them without simulator
-knowledge.
-
-## Fault injection
-
-`FaultInjector` maintains a set of active faults and transforms a baseline
-snapshot when it is read. Keeping faults outside the baseline evolution makes
-them easy to activate, clear, test, and extend. The initial fault set covers
-low battery, motor overheating, signal loss, sensor noise, and stalled motors.
-
-## Event stream layer
-
-`TelemetryStream` wraps an existing `RobotSimulator`; it does not duplicate or
-replace simulation behavior. A stream starts in the `stopped` state. `start`
-and `stop` move it through an explicit, idempotent lifecycle, while `step`
-advances the wrapped simulator only when the stream is running. Callers receive
-events through `subscribe` and can detach handlers with `unsubscribe` or the
-function returned by `subscribe`.
-
-Each event includes a robot ID, simulator-clock timestamp, deterministic ID,
-and strictly increasing per-stream sequence number. A running step emits
-`state.changed` first when the observed robot state changes, followed by the
-`telemetry.snapshot` that reflects that state. Fault injection and lifecycle
-operations emit their corresponding events synchronously. This fixed ordering
-makes equal simulator configurations and action sequences produce equal event
-streams.
-
-The stream intentionally has no timer, network transport, background loop, or
-asynchronous queue. Manual stepping keeps control with the caller, makes tests
-fast and deterministic, and avoids committing the core SDK to scheduling or
-transport policy. Those concerns can be layered on later.
-
-## Output layer
-
-The JSON output helper serializes the public snapshot contract without adding
-transport behavior. Future output formats can use the same boundary.
-
-## Replay layer
-
-The replay layer records and reproduces the public `TelemetryEvent` contract.
-It is additive to the simulator and stream: recording observes events, while
-playback operates on an already-created log without advancing a simulator.
-
-### Replay log model
-
-A `ReplayLog` contains a format version, one robot ID, an ISO creation time,
-an optional simulation seed, the declared event count, an ordered event array,
-and optional caller metadata. Events are stored in their original form so
-their IDs, types, simulator-clock timestamps, robot IDs, sequences, and
-payloads remain the authoritative recorded values.
-
-`serializeReplayLog` and `deserializeReplayLog` convert between this plain
-object model and JSON. They do not read or write files.
-
-### Recorder
-
-`ReplayRecorder` starts inactive. A stream can subscribe its bound `record`
-handler directly; events are ignored while the recorder is inactive and
-appended in delivery order while it is active. `clear` removes the current
-recording, and `toLog` creates a new log and event array without rewriting the
-events. The robot ID and creation time can be configured; otherwise they are
-derived from the first recorded event.
-
-### Player
-
-`ReplayPlayer` starts stopped and maintains a cursor into a replay log. `start`
-enables playback, `step` synchronously emits one event, and `playAll`
-synchronously emits every remaining event. Reaching the end stops the player.
-Subscribers receive the original event objects in exact log order.
-
-### Validator
-
-`validateReplayLog` returns `valid`, `errors`, and `warnings` instead of
-throwing or returning only a boolean. It checks required log identity and
-version fields, declared event count, required event fields, known event types,
-strictly increasing sequences, and agreement between every event robot ID and
-the log robot ID.
-
-### Deterministic replay guarantees
-
-Replay does not generate new IDs, timestamps, sequences, or payloads and does
-not reorder events. Given the same valid log and the same sequence of player
-calls, subscribers observe the same values in the same order. Playback has no
-timers, asynchronous background loop, network access, or hardware dependency.
-
-Current replay non-goals are scheduling events according to timestamps and
-network transport. The fleet layer wraps independent robot logs without
-changing this contract; the timeline layer derives a globally sequenced view,
-and the artifact layer persists both forms without adding file-system behavior
-to replay itself.
-
-## Scenario layer
-
-The scenario layer composes the simulator, event stream, and replay layers into
-a small deterministic robotics test lab. It adds configuration and orchestration
-without changing the behavior or public APIs of those lower layers.
-
-### Scenario profile model
-
-A `ScenarioProfile` is a plain reusable data object with a stable ID,
-human-readable name and description, optional seed and robot configuration,
-positive duration and step interval, an optional scheduled-fault timeline, and
-optional caller metadata. Each `ScheduledFault` pairs an existing `Fault` with
-an elapsed scenario time in milliseconds. Profiles contain no functions,
-timers, persistence, or transport configuration.
-
-### Built-in scenarios
-
-The SDK ships with `basic-patrol`, `battery-drain`, `motor-overheat`,
-`signal-loss`, `sensor-noise`, and `stalled-motor`. Their IDs, seeds, robot
-identities, timing, and fault schedules are stable. `getBuiltInScenario`
-returns an independent copy so callers can customize a profile without
-changing the shared definitions.
-
-### Validator
-
-`validateScenarioProfile` returns structured `valid`, `errors`, and `warnings`
-fields. It verifies required identity fields, positive duration and step
-values, step-to-duration bounds, optional robot identity, fault timing bounds,
-and known fault types. `ScenarioRunner` validates before creating any
-simulation components and rejects invalid profiles.
-
-### Runner and replay flow
-
-`ScenarioRunner` copies the input profile, creates a `RobotSimulator`,
-`TelemetryStream`, and `ReplayRecorder`, then starts and advances them
-synchronously. Each iteration advances by `stepMs`, except for a final partial
-step when the duration is not evenly divisible. After elapsed time reaches or
-crosses a scheduled `atMs`, the runner injects that fault exactly once. Faults
-at zero are injected immediately after stream start.
-
-The resulting flow is:
+## Evidence pipeline
 
 ```text
-ScenarioProfile
-  -> validate
-  -> RobotSimulator
-  -> TelemetryStream
-  -> ReplayRecorder
-  -> ReplayLog
-  -> validateReplayLog
+ScenarioProfile / FleetScenarioProfile
+              │
+              v
+RobotSimulator or HardwareAdapter<TReading>
+              │
+              v
+      TelemetrySnapshot
+              │
+              v
+       TelemetryEvent
+              │
+              v
+          ReplayLog
+              │
+        ┌─────┴─────────┐
+        v               v
+FleetReplayLog       Reports
+        │
+        v
+FleetEventTimeline
+        │
+        v
+ExperimentArtifactBundle
 ```
 
-The result includes the copied profile, final snapshot, emitted events, replay
-log, both validation results, and summary counts. Replay metadata records the
-scenario ID and optional scenario metadata.
+`TelemetrySnapshot`, `TelemetryEvent`, `ReplayLog`, `FleetReplayLog`,
+`FleetEventTimeline`, and `ExperimentArtifactBundle` are the canonical
+evidence chain.
 
-### Deterministic scenario guarantees
+## Layer responsibilities
 
-Given an equal profile, a run produces equal snapshots, event IDs, sequences,
-timestamps, payloads, replay logs, validation results, and summaries. Numeric
-and string seeds are deterministic; string seeds are converted with a stable
-in-process hash before pseudo-random sampling. Equal-time faults retain their
-profile order. The runner does not mutate its input and uses no timers,
-asynchronous loops, networking, hardware, or direct file-system persistence.
-Exporters compose its result with the separate artifact layer.
+| Layer | Owns | Does not own |
+|---|---|---|
+| `simulator`, `faults` | Seeded telemetry evolution and fault transforms | Scheduling, transport |
+| `hardware` | Adapter contracts, virtual readings, adapter collection | Real drivers, polling |
+| `events` | Stream lifecycle, event identity and delivery | Persistence, queues |
+| `replay` | Event recording, validation and ordered playback | Simulation, time pacing |
+| `scenarios` | One-robot configuration and orchestration | Filesystem output |
+| `fleet` | Sorted multi-robot orchestration and replay wrapper | Distributed coordination |
+| `clock` | Explicit deterministic time state | Wall time, timers |
+| `timeline` | Derived global fleet ordering and queries | Live sequence assignment |
+| `console` | Pure text views | Terminal control, logging |
+| `artifacts` | Indexed local JSON/text persistence | Databases, cloud storage |
 
-## Console and reporting layer
+Dependencies should point from orchestration and views toward smaller data and
+behavior layers. Cross-layer composition belongs in scenario/fleet runners and
+artifact exporters.
 
-The console layer is a read-only view over existing public models. It renders
-scenario results, telemetry snapshots, event arrays, fault events, and replay
-logs as fixed-layout plain text. It neither changes nor duplicates simulator,
-stream, replay, or scenario behavior.
+## Simulation and snapshots
 
-Each renderer is a pure function that returns a string. Library code does not
-write to standard output, detect terminal width, inspect environment state, or
-use colors and cursor control. This keeps the output usable in terminals, CI
-logs, text files managed by callers, and exact string assertions. The example
-script is the only console-specific component that prints output.
+`RobotSimulator` owns seeded pseudo-random sampling, internal time, baseline
+state, battery evolution, and motor temperature evolution. `FaultInjector`
+transforms a cloned snapshot rather than rewriting baseline evolution.
 
-Console formatting centralizes percentages, voltages, temperatures,
-millisecond values, robot states, and telemetry numbers. Timeline rendering
-retains the supplied event order, supports a deterministic leading-event
-limit, and can include compact payload summaries. Runtime payload checks let
-event and fault reports remain readable when optional or externally loaded
-metadata is absent.
+`TelemetrySnapshot` is the common boundary for simulator and adapter-backed
+telemetry. It contains:
 
-The reporting flow extends scenario execution without adding a new data model:
+- ISO timestamp and robot identity,
+- battery percentage and voltage,
+- motor RPM and Celsius temperatures,
+- CPU and memory percentages,
+- signal strength in dBm,
+- IMU acceleration and gyro vectors,
+- robot state.
+
+The simulator is a repeatable software model, not a physics engine.
+
+## Event streams and ownership
+
+`TelemetryStream` wraps a simulator. `AdapterTelemetryStream` combines four
+adapter domains with the same event/replay pipeline. Both are stopped by
+default and advance only through explicit calls.
+
+Events have deterministic IDs, numeric millisecond timestamps, robot IDs, and
+per-stream sequences. Every handler receives a structured clone. This prevents
+one subscriber from changing evidence delivered to another subscriber.
+Handlers remain synchronous and fail-fast: an exception propagates and stops
+the current delivery loop.
+
+The adapter stream and global timeline are experimental public contracts until
+v1. See [API Stability](API_STABILITY.md).
+
+## Replay
+
+`ReplayRecorder` retains independent event copies while active.
+`ReplayPlayer` copies a log at construction and emits independent copies in
+array order. Playback neither advances a simulator nor waits for timestamp
+deltas.
+
+Replay validation enforces the supported format version, required identity,
+event count, unique IDs, known event types, non-negative nondecreasing
+timestamps, positive increasing sequences, robot identity, and payload
+presence.
+
+Deserializers parse JSON but callers must validate loaded data.
+
+## Scenarios and fleet execution
+
+`ScenarioRunner` validates a profile, creates simulator/stream/recorder
+components, injects scheduled faults, and returns in-memory evidence.
+
+`FleetScenarioRunner` applies one duration and step interval to each effective
+robot scenario. Robot runtimes are sorted by robot ID and stepped once per
+global iteration. Each robot keeps an independent replay log.
+
+The two runners intentionally remain direct implementations. Their duplicated
+orchestration is small and should be extracted only when a concrete shared
+change requires it.
+
+## Time
+
+Clocks are explicit synchronous state machines:
+
+- `SimulationClock` tracks elapsed simulation time.
+- `LogicalClock` supplies fixed logical ticks.
+- `ReplayClock` follows recorded timestamps.
+- `FleetClock` advances once per global fleet step.
+
+Clock ownership differs by workflow. The exact rules are defined in
+[Determinism](DETERMINISM.md). Clocks are not schedulers and should not be
+shared between independently controlled workflows.
+
+## Fleet timeline
+
+`FleetEventTimeline` is a read-only derivation from `FleetReplayLog`. It clones
+payloads, applies a total order, and assigns a separate contiguous
+`fleetSequence`.
 
 ```text
-ScenarioProfile
-  -> ScenarioRunner
-  -> ScenarioRunResult
-     -> final TelemetrySnapshot -> telemetry report
-     -> TelemetryEvent[]       -> timeline and fault reports
-     -> validated ReplayLog    -> replay report
-     -> summary                -> scenario report
+timestamp
+  -> robotId
+  -> robotSequence
+  -> eventId
+  -> fleetSequence
 ```
 
-Replay reports run the existing structured validator at render time, then
-show validation status, sequence bounds, and deterministic event-type counts.
-No report uses timers, background work, networking, file-system persistence,
-terminal capabilities, or mutable global state. Equal input and equal options
-therefore produce byte-for-byte equal output.
+The validator enforces this canonical order. Source replay events and
+per-robot sequences are never modified.
 
-## Fleet scenario layer
+## Reports
 
-The fleet layer composes existing single-robot scenario primitives without
-changing them. `FleetScenarioProfile` defines fleet identity, description,
-global duration and step interval, optional metadata, and one or more
-`FleetRobotProfile` entries. Each robot entry supplies a unique robot ID, a
-reusable `ScenarioProfile`, and optional fleet-specific metadata.
+Report functions convert supported models to fixed-layout strings. They do not
+write output, inspect terminal capabilities, use locale-sensitive formatting,
+or read environment state. Applications choose where report strings go.
 
-### Per-robot scenario reuse and validation
+JSON remains the machine-readable evidence format; report text is for humans.
 
-`validateFleetScenario` checks fleet identity and timing, requires at least one
-robot, rejects duplicate or empty robot IDs, and runs the existing scenario
-validator against every embedded profile after overriding its robot ID with
-the fleet robot ID. This makes the wrapper identity authoritative while
-retaining single-robot seeds, initial states, scheduled faults, and metadata.
-The runner clones its input and applies fleet duration and step values only to
-the effective per-robot profiles used for execution.
+## Artifacts
 
-### Deterministic sorted stepping
+Artifact exporters assemble completed scenario or fleet results into a
+versioned indexed directory. The index declares safe relative paths, semantic
+file kinds, and formats. Writers serialize all content before writing, refuse
+overwrite by default, and use fixed JSON indentation and trailing newlines.
 
-`FleetScenarioRunner` validates first, creates one `RobotSimulator`,
-`TelemetryStream`, and `ReplayRecorder` per robot, and sorts runtimes by robot
-ID. One synchronous global loop advances every robot by the same delta in that
-stable order. Fault schedules are evaluated against fleet elapsed time and
-each scheduled fault is injected once when the clock reaches or crosses its
-time. A final partial step reaches durations that are not evenly divisible by
-the fleet step interval.
+Writes are local, synchronous, and non-transactional. With overwrite enabled,
+an interruption can leave incomplete output. Integrity digests and atomic
+replacement are post-v1 candidates.
 
-```text
-FleetScenarioProfile
-  -> validate
-  -> sort FleetRobotProfiles by robotId
-  -> [RobotSimulator -> TelemetryStream -> ReplayRecorder] per robot
-  -> step every robot on one fleet clock
-  -> per-robot ScenarioRunResult + aggregate fleet summary
-```
+## Platform and extension boundaries
 
-The result retains normal `ScenarioRunResult` objects keyed by robot ID and
-adds robot count, global step count, total events, total faults, and final
-states. Event IDs and replay sequences remain deterministic and independent
-per robot. The separate timeline layer can derive global sequence numbers
-without changing those source events.
+The package targets Node.js 20+ ESM. Filesystem-backed artifact exports are
+part of the root package, so browser portability is not claimed.
 
-### Fleet replay wrapper and reporting
+Future integrations should wrap the core:
 
-`FleetReplayLog` stores fleet identity, version, deterministic creation time,
-optional metadata, sorted per-robot `ReplayLog` objects, and their summed event
-count. Creation, structured validation, JSON serialization, and JSON
-deserialization are pure in-memory operations. The wrapper preserves each
-single-robot replay contract rather than flattening or reordering events.
+- timers or real-time pacing drive explicit `step` calls,
+- transports consume events or artifacts,
+- real device code implements adapter contracts,
+- ROS or middleware bridges translate at package boundaries.
 
-Fleet scenario and replay renderers are pure fixed-layout text views. They show
-aggregate counts plus sorted final-state and per-robot event sections, so equal
-input produces equal output suitable for terminals and CI logs.
+They should not introduce background behavior into the deterministic core.
 
-### Fleet non-goals
+The v1.1 digital-twin layer adds immutable `Robot`, `RobotState`, `Scene`,
+`ReplayEvent`, and `TwinTimeline` contracts above this evidence pipeline. It
+does not alter existing evidence formats. See
+[Digital Twin Architecture](DigitalTwinArchitecture.md) for the contract
+boundaries and future platform ports.
 
-The fleet layer is a synchronous simulation coordinator only. It includes no
-networking, distributed consensus, ROS integration, real robot fleet control,
-hardware discovery, global clock synchronization, timers, background loops, or
-asynchronous polling.
+## Compatibility
 
-## Global fleet timeline layer
+The npm API and persisted formats have separate versions. Stable public exports
+follow [API Stability](API_STABILITY.md). Persisted values must carry their
+format version and pass the corresponding validator.
 
-The timeline layer is a read-only derivation from `FleetReplayLog`. It
-flattens the existing per-robot event arrays, clones payloads, and sorts events
-by timestamp, robot ID, robot sequence, then event ID. The final event ID
-tie-breaker makes ordering total even for externally assembled logs with equal
-timestamps and duplicate per-robot sequence values.
-
-```text
-FleetReplayLog
-  -> flatten per-robot ReplayLog events
-  -> sort(timestamp, robotId, robotSequence, eventId)
-  -> assign fleetSequence from 1
-  -> FleetEventTimeline
-```
-
-Each `GlobalFleetEvent` preserves the source event's robot ID,
-`robotSequence`, timestamp, type, event ID, and payload. Its
-`fleetSequence` identifies the event's position only in the derived global
-view. No global sequence is written back to a stream event or replay log, and
-timeline construction does not mutate its input.
-
-`validateFleetEventTimeline` checks identity and version fields, event counts,
-known event types, positive robot sequences, finite non-negative timestamps,
-and strictly increasing fleet sequences beginning at one. Backward timestamps
-and empty timelines are warnings so loaded evidence can be inspected without
-weakening validity checks.
-
-Pure queries filter by robot ID, event type, or inclusive timestamp range,
-look up one fleet sequence, and produce deterministic key-sorted counts by
-robot or event type. The summary and full report renderers return fixed-layout
-plain text; the full report includes the first ten globally ordered events.
-This stable model is the input boundary for future diagnostics, CI rules, and
-visualization, not an event-ingestion or distributed synchronization system.
-
-## Experiment artifact layer
-
-The artifact layer is a local-filesystem boundary around completed scenario and
-fleet results. It does not change simulation, replay, validation, or report
-generation. Its directory-oriented format favors direct inspection and stable
-robotics QA inputs over a storage abstraction.
-
-### Bundle model and index
-
-`ExperimentArtifactBundle` records a format version, experiment ID, ISO
-creation time, scenario-or-fleet kind, descriptive metadata, robot IDs, and an
-ordered file manifest. Every declared file has a safe relative path, known
-semantic kind, and either JSON or text format. The same bundle is written to
-`artifact-index.json`; `metadata.json` carries the experiment identity and
-metadata needed to discover an artifact directory when the index is absent.
-
-`validateExperimentArtifactBundle` returns structured errors and warnings. It
-checks required identity and metadata fields, non-empty robot IDs and file
-lists, known kinds and formats, duplicate paths, and relative paths that cannot
-escape the experiment directory.
-
-### Writer and reader
-
-`writeExperimentArtifacts` sanitizes the experiment ID for its folder name,
-creates nested directories, formats JSON with two-space indentation, and
-refuses to replace an existing experiment by default. Callers must explicitly
-set `overwrite: true` to replace one. The default root is `artifacts`, and a
-different local root can be supplied per write.
-
-`readExperimentArtifacts` parses JSON as data only and reads text verbatim; it
-never executes or evaluates content. It loads the metadata and index, returns
-the declared file contents and bundle validation, and reports missing files as
-warnings. If no index exists, it recursively discovers only recognized JSON
-and report paths and reconstructs a bundle from `metadata.json`.
-
-### Scenario and fleet exporters
-
-`exportScenarioRunArtifacts` writes the scenario profile, replay log, scenario
-and replay validations, telemetry summary, final telemetry report, event
-timeline, fault report, scenario report, and replay report.
-
-`exportFleetRunArtifacts` writes the fleet profile, fleet replay wrapper,
-aggregate validations and reports, a derived timeline JSON file, timeline
-report and summary text, then writes each robot's replay log, validations, and
-five existing single-robot reports below a sanitized robot folder. Timeline
-validation is included in the aggregate validation document. Robot entries and
-IDs retain deterministic sorted order.
-
-Both exporters default the artifact creation time to the corresponding replay
-creation time and reuse existing pure renderers. Equal run results and export
-options therefore produce equal file contents.
-
-### Telemetry summaries and future CI/CD
-
-The compact `TelemetrySummary` contains sorted robot IDs, total event and fault
-counts, final states keyed by robot ID, and elapsed duration. This gives a
-future robot QA job a small machine-readable result while replay logs preserve
-full evidence and text reports provide human-readable context.
-
-Artifacts are intentionally limited to local directories, JSON, and text.
-There is no database, cloud storage, network transport, compression, binary
-format, timer, or background process. This stable handoff is the basis for
-future CI/CD systems to run deterministic experiments, retain evidence, compare
-summaries, and gate changes without coupling the SDK to a CI vendor.
-
-## Hardware adapter layer
-
-The hardware layer defines a synchronous boundary for telemetry sources without
-adding a device or transport dependency. `HardwareAdapter<TReading>` has two
-operations: `getInfo()` reports stable adapter identity and current status, and
-`read()` returns the current domain-specific reading. Adapter status is one of
-`ready`, `degraded`, `faulted`, or `offline`.
-
-Battery, motor, IMU, and system readings correspond to the existing power,
-actuator, motion, compute, and communications fields in `TelemetrySnapshot`.
-`validateHardwareAdapter` checks the contract at runtime and returns structured
-errors and warnings rather than throwing for malformed third-party adapters.
-
-### Virtual adapters
-
-`VirtualBatteryAdapter`, `VirtualMotorAdapter`, `VirtualImuAdapter`, and
-`VirtualSystemAdapter` provide deterministic in-memory implementations. They
-accept explicit initial values, keep readings stable, expose status and reading
-setters, and return defensive copies. The battery adapter can also evolve
-percentage and voltage through optional per-second rates and explicit `step`
-calls. None uses implicit randomness or scheduling.
-
-### Adapter telemetry collector
-
-`AdapterTelemetryCollector` reads one adapter from each current domain and
-maps those values into the established `TelemetrySnapshot` contract:
-
-```text
-BatteryAdapter ─┐
-MotorAdapter ───┤
-ImuAdapter ─────┼─> AdapterTelemetryCollector ─> TelemetrySnapshot
-SystemAdapter ──┘
-```
-
-The caller supplies the robot ID, configured robot state, and collection
-timestamp. A faulted reading makes that snapshot's state `faulted`; when all
-readings are offline, its state is `offline`; otherwise the configured state
-is preserved. Inference does not overwrite the collector's configured state.
-The collector constructs a new snapshot and nested IMU vectors, so it does not
-mutate or expose adapter readings.
-
-This is an alternative telemetry source, not a `RobotSimulator` rewrite.
-Simulation and adapter-backed collection can evolve independently while
-downstream code continues to consume the same snapshot model.
-
-## Adapter event stream layer
-
-`AdapterTelemetryStream` connects the hardware adapter boundary to the shared
-event pipeline without duplicating telemetry collection or replay behavior. Its
-constructor accepts the same four domain adapters and robot configuration as
-`AdapterTelemetryCollector`, then delegates every emitted snapshot to an
-internal collector.
-
-```text
-Virtual Hardware Adapters
-  -> AdapterTelemetryStream
-     -> AdapterTelemetryCollector -> TelemetrySnapshot
-     -> TelemetryEvent
-        -> ReplayRecorder
-        -> ReplayLog
-        -> event timeline and replay reports
-        -> experiment replay-log and report artifacts
-```
-
-### Lifecycle and logical clock
-
-The stream starts stopped. `start` and `stop` are idempotent and emit adapter
-lifecycle events only when the state changes. `step(deltaMs)` validates a
-positive finite duration, does nothing while stopped, and advances only a
-logical clock initialized by `startTime` (the Unix epoch by default). There is
-no wall-clock read, timer, asynchronous queue, or background polling.
-
-Any adapter implementing the existing optional
-`SteppableHardwareAdapter<TReading>` contract is stepped before observation.
-This allows deterministic virtual behavior such as battery drain while leaving
-non-steppable adapters unchanged.
-
-### Transition detection and ordering
-
-Starting establishes status and reading baselines. Each running step observes
-adapters in the fixed domain order battery, motor, IMU, and system. For each
-adapter it emits a status transition when the status differs from the previous
-running observation. With `emitReadingChanges: true`, it then emits a reading
-transition when non-status reading data differs. Reading events are disabled by
-default to keep high-volume data opt-in.
-
-The complete ordering for one step is:
-
-```text
-step steppable adapters in domain order
-  -> advance logical clock
-  -> [status change, optional reading change] per adapter in domain order
-  -> collect and emit adapter telemetry snapshot
-```
-
-Every event receives the current logical-clock timestamp, the collector's robot
-ID, a strictly increasing per-stream sequence, and a deterministic
-`<robotId>:<sequence>` ID. Status transitions therefore produce exactly one
-event per observed transition, and equal configuration plus equal method calls
-produce equal events.
-
-### Replay, reports, and artifacts
-
-Adapter event names are part of the shared `TelemetryEventType` vocabulary.
-The existing recorder preserves them, the replay validator recognizes them,
-and the replay player returns them unchanged. The event timeline summarizes
-adapter status, reading, and snapshot payloads; the replay report includes
-adapter event counts.
-
-Because adapter recordings remain normal `ReplayLog` values, the existing
-artifact writer can persist them using the established `replay-log` file kind
-alongside timeline and replay report text. No adapter-specific replay,
-renderer, or artifact format is introduced.
-
-### Future real-device boundary and non-goals
-
-The interface prepares a stable integration point for future Raspberry Pi,
-Jetson, ESP32, ROS, motor-controller, battery, IMU, camera, and networked-robot
-implementations. Those implementations can translate device-specific data
-behind the adapter contracts without changing telemetry consumers.
-
-Version 0.9 deliberately includes no real hardware integration, GPIO access,
-serial communication, ROS integration, networking, timers, background loops,
-or asynchronous hardware polling. It has no device-driver dependency and does
-not claim to validate connectivity or physical sensor correctness.
+Any change to random draw order, clock advancement, event order, timeline
+sorting, report formatting, or artifact serialization must follow the
+contributor rules in [Determinism](DETERMINISM.md).

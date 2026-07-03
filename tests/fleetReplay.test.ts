@@ -48,6 +48,15 @@ describe("fleet replay logs", () => {
     );
   });
 
+  it("rejects unsupported fleet replay versions", () => {
+    const log = structuredClone(runFleet().fleetReplayLog);
+    log.version = "99.0.0";
+
+    expect(validateFleetReplayLog(log).errors).toContain(
+      'Unsupported fleet replay log version "99.0.0"; expected "0.7.0".',
+    );
+  });
+
   it("creates independent, sorted per-robot logs", () => {
     const source = runFleet().fleetReplayLog.robotLogs;
     const reversed = Object.fromEntries(Object.entries(source).reverse());

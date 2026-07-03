@@ -1,0 +1,42 @@
+{
+  "actuators": [
+    {
+      "id": "rotors",
+      "jointIds": ["rotor-fl", "rotor-fr", "rotor-rl", "rotor-rr"],
+      "name": "Rotor Group",
+      "type": "thrust"
+    }
+  ],
+  "attachments": [],
+  "frames": [
+    {
+      "id": "body",
+      "name": "Body",
+      "transformToParent": {
+        "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 },
+        "translation": { "x": 0, "y": 0, "z": 0 }
+      }
+    }
+  ],
+  "id": "quadrotor-1",
+  "joints": [
+    { "childLinkId": "motor-fl", "id": "rotor-fl", "name": "Front Left Rotor", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 0.2, "y": 0.2, "z": 0 } }, "parentLinkId": "airframe", "type": "continuous" },
+    { "childLinkId": "motor-fr", "id": "rotor-fr", "name": "Front Right Rotor", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": 0.2, "y": -0.2, "z": 0 } }, "parentLinkId": "airframe", "type": "continuous" },
+    { "childLinkId": "motor-rl", "id": "rotor-rl", "name": "Rear Left Rotor", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": -0.2, "y": 0.2, "z": 0 } }, "parentLinkId": "airframe", "type": "continuous" },
+    { "childLinkId": "motor-rr", "id": "rotor-rr", "name": "Rear Right Rotor", "origin": { "rotation": { "w": 1, "x": 0, "y": 0, "z": 0 }, "translation": { "x": -0.2, "y": -0.2, "z": 0 } }, "parentLinkId": "airframe", "type": "continuous" }
+  ],
+  "links": [
+    { "frameId": "body", "id": "airframe", "name": "Airframe" },
+    { "frameId": "body", "id": "motor-fl", "name": "Front Left Motor" },
+    { "frameId": "body", "id": "motor-fr", "name": "Front Right Motor" },
+    { "frameId": "body", "id": "motor-rl", "name": "Rear Left Motor" },
+    { "frameId": "body", "id": "motor-rr", "name": "Rear Right Motor" }
+  ],
+  "metadata": { "name": "Example Quadrotor", "tags": ["example", "aerial"] },
+  "rootFrameId": "body",
+  "schemaVersion": "1.0.0",
+  "sensors": [
+    { "frameId": "body", "id": "imu", "name": "IMU", "type": "imu" },
+    { "frameId": "body", "id": "altimeter", "name": "Altimeter", "type": "barometer" }
+  ]
+}
