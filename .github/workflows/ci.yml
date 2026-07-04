@@ -28,21 +28,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - name: Run SDK checks
+        run: npm run check
 
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
-
-      - name: Check public API compatibility
-        run: node scripts/check-api-compatibility.mjs
+      - name: Inspect package dry run
+        run: npm pack --dry-run
 
       - name: Test packed Node and browser consumers
         if: matrix.node-version == 20
-        run: node scripts/test-packed-consumers.mjs
+        run: npm run test:packed

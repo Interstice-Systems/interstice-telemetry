@@ -22,6 +22,30 @@ const written = exportFleetRunArtifacts(fleetResult, {
 });
 ```
 
+Custom applications can package SDK and application evidence without creating
+a scenario or fleet result:
+
+```ts
+const written = exportCustomEvidenceArtifacts({
+  experimentId: "rover-0-mission",
+  rootDir: "artifacts",
+  metadata: {
+    name: "Rover-0 deterministic mission",
+    robotIds: ["rover-0"],
+  },
+  replayLog,
+  replayValidation,
+  twinTimeline,
+  diagnostics,
+  provenance,
+  evidenceManifest,
+  reports: {
+    "mission-report.txt": renderMissionReport(mission),
+    "metrics.json": { format: "json", content: mission.metrics },
+  },
+});
+```
+
 Writers refuse to replace an existing experiment directory by default. Set
 `overwrite: true` only when replacement is intended.
 
@@ -65,11 +89,39 @@ evidence, and a derived timeline:
     reports/
 ```
 
+## Custom mission layout
+
+The custom exporter always writes the metadata and index. Other canonical
+paths are included only when their input is supplied:
+
+```text
+<experiment>/
+  artifact-index.json
+  metadata.json
+  replay-log.json
+  replay-validation.json
+  twin-timeline.json
+  diagnostics.json
+  provenance.json
+  evidence/
+    evidence-manifest.json
+  reports/
+    <application-defined files>
+```
+
+String report values are text. Structured report descriptors may select
+`"json"` or `"txt"` and provide an optional description. Report names are
+safe relative paths beneath `reports/` and are indexed in lexical order.
+Inputs are not mutated.
+
 ## Index and versions
 
 `artifact-index.json` is an `ExperimentArtifactBundle`. It identifies the
 artifact format version, experiment, creation time, kind, metadata, and all
 declared files.
+
+Custom bundles use kind `custom`; existing scenario and fleet kinds and layouts
+are unchanged.
 
 `validateExperimentArtifactBundle` rejects unsupported versions, unsafe or
 duplicate paths, unknown kinds/formats, and missing core metadata. Serialized

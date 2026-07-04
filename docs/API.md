@@ -44,8 +44,10 @@ Important methods:
 strings. Percentages use a 0–100 scale, motor speeds use RPM, temperatures use
 degrees Celsius, voltage uses volts, and signal strength uses dBm.
 
-Core types: `TelemetrySnapshot`, `ImuTelemetry`, `Vector3`, `RobotState`,
-`RobotSimulatorOptions`.
+Core types: `TelemetrySnapshot`, `ImuTelemetry`, `Vector3`,
+`RobotOperatingMode`, `RobotSimulatorOptions`. `RobotOperatingMode` is the
+status-only string union. The canonical digital-twin `RobotState` is a
+separate complete-state interface.
 
 ### Faults
 
@@ -195,18 +197,22 @@ functions are experimental until their loaded-format contract is frozen.
 
 ## Artifacts
 
-High-level exporters persist complete scenario or fleet evidence:
+High-level exporters persist complete scenario, fleet, or custom-application
+evidence:
 
 - `exportScenarioRunArtifacts`
 - `exportFleetRunArtifacts`
+- `exportCustomEvidenceArtifacts`
 - `readExperimentArtifacts`
 
 Artifact persistence is synchronous, local-filesystem, Node-only behavior.
 Writers refuse to replace an existing experiment unless `overwrite: true` is
 set. Replacement is not atomic.
 
-Low-level bundle construction and path helpers are internal candidates. Prefer
-the exporters unless building a custom artifact layout is necessary.
+`exportCustomEvidenceArtifacts` accepts application-owned replay, validation,
+twin, diagnostic, provenance, manifest, and report values without requiring a
+scenario or fleet result. Low-level bundle construction and path helpers are
+internal candidates.
 
 ## Reports and JSON output
 
@@ -222,6 +228,7 @@ stdout, inspect terminal capabilities, or use wall time.
 - `renderFleetReplayReport`
 - `renderFleetTimelineSummary`
 - `renderFleetTimelineReport`
+- `renderTwinDiagnosticReport`
 
 `snapshotToJson` serializes a telemetry snapshot, optionally with indentation.
 

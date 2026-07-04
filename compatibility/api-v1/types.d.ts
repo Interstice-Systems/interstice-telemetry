@@ -1,3 +1,9 @@
+/**
+ * Simulator and telemetry lifecycle status.
+ *
+ * Public consumers should import this type as `RobotOperatingMode`. The
+ * package-root `RobotState` name refers to the canonical digital-twin state.
+ */
 export type RobotState = "idle" | "active" | "returning" | "charging" | "faulted" | "offline";
 export interface Vector3 {
     x: number;

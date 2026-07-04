@@ -72,10 +72,16 @@ export {
   createFleetTelemetrySummary,
   exportFleetRunArtifacts,
 } from "./artifacts/fleetArtifactExporter.js";
+export { exportCustomEvidenceArtifacts } from "./artifacts/customEvidenceArtifactExporter.js";
 export {
   createScenarioTelemetrySummary,
   exportScenarioRunArtifacts,
 } from "./artifacts/scenarioArtifactExporter.js";
+export type {
+  CustomEvidenceArtifactExportInput,
+  CustomEvidenceReport,
+  CustomEvidenceReportInput,
+} from "./artifacts/artifactTypes.js";
 
 /** Canonical evidence manifests, lineage queries, and provenance coverage. */
 export {
@@ -347,7 +353,7 @@ export type {
   TelemetrySnapshot,
   Vector3,
 } from "./types.js";
-/** @deprecated Use `RobotOperatingMode`; renamed in v1.1 to free `RobotState`. */
+/** Simulator/telemetry lifecycle status; called `RobotState` before v1.1. */
 export type { RobotState as RobotOperatingMode } from "./types.js";
 
 /** Derived global fleet timelines, queries, validation, and reports. */
@@ -531,6 +537,7 @@ export type {
 /** Rule-based deterministic digital-twin evidence diagnostics. */
 export {
   createTwinDiagnosticReport,
+  renderTwinDiagnosticReport,
   runTwinDiagnostics,
   TWIN_DIAGNOSTIC_SEVERITIES,
   validateRobotState,

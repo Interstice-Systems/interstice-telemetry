@@ -70,7 +70,9 @@ const isMetadataDocument = (
   typeof value.version === "string" &&
   typeof value.experimentId === "string" &&
   typeof value.createdAt === "string" &&
-  (value.kind === "scenario" || value.kind === "fleet") &&
+  (value.kind === "scenario" ||
+    value.kind === "fleet" ||
+    value.kind === "custom") &&
   isRecord(value.metadata);
 
 const toMetadata = (value: unknown): ExperimentMetadata => {

@@ -7,9 +7,10 @@ recording, replaying, validating, and inspecting repeatable robot telemetry
 experiments. It gives robotics teams useful software evidence before hardware
 is available, safe, or reproducible.
 
-Version 1.5 is the public v1 release-candidate engineering milestone. It freezes
-candidate APIs, gates declarations and serialized fixtures, tests packed
-consumers, and hardens runner cleanup.
+Version `1.0.0-rc.1` is the first public v1 release candidate. The repository's
+v1.1–v1.5 labels were unpublished engineering milestones, not npm releases.
+The candidate freezes APIs, gates declarations and serialized fixtures, tests
+packed consumers, and includes the pre-v1 Rover-0 dogfood fixes.
 
 The SDK is synchronous and manually stepped. It does not start timers,
 background loops, network connections, or hardware polling.
@@ -24,6 +25,7 @@ background loops, network connections, or hardware polling.
 - A derived global fleet event timeline.
 - Pure terminal reports.
 - Versioned local experiment artifacts.
+- Generic custom-mission evidence artifact export.
 - Synchronous hardware adapter contracts and virtual adapters.
 - Immutable robot structure and environment metadata.
 - Complete deterministic `RobotState` snapshots.
@@ -31,6 +33,7 @@ background loops, network connections, or hardware polling.
 - JSON Schema validation and stable v1.1 compatibility fixtures.
 - Explicit telemetry/replay-to-state bridge interfaces.
 - Rule-based diagnostics and derived multi-robot twin views.
+- Deterministic plain-text twin diagnostic reports.
 - Browser-safe `interstice-telemetry/digital-twin` exports.
 - Immutable provenance, ownership, validation, reports, and propagation.
 - Canonical evidence manifests, lineage queries, and provenance coverage.
@@ -109,8 +112,10 @@ prove authenticity.
 The models remain separate on purpose:
 
 - `TelemetrySnapshot` is the common observation contract.
+- `RobotOperatingMode` is the telemetry lifecycle string union such as
+  `"active"` or `"faulted"`.
 - `Robot` and `Scene` provide structural and environmental context.
-- `RobotState` is complete normalized state at one timestamp.
+- `RobotState` is the canonical complete normalized state at one timestamp.
 - `TwinTimeline` is a deterministic history of states and event markers.
 - `TelemetryEvent` records an ordered stream action or observation.
 - `ReplayLog` preserves one robot's event evidence.
@@ -243,6 +248,26 @@ console.log(loaded.validation);
 Artifact persistence is synchronous and Node-only. Existing experiment
 directories are not replaced unless `overwrite: true` is explicit.
 
+Applications that do not use a built-in runner can export the same indexed
+layout without manufacturing a scenario result:
+
+```ts
+import { exportCustomEvidenceArtifacts } from "interstice-telemetry";
+
+exportCustomEvidenceArtifacts({
+  experimentId: "rover-0-mission",
+  rootDir: "artifacts",
+  metadata: { name: "Rover-0 mission", robotIds: ["rover-0"] },
+  replayLog,
+  replayValidation,
+  twinTimeline,
+  diagnostics,
+  provenance,
+  evidenceManifest,
+  reports: { "mission-report.txt": missionReport },
+});
+```
+
 ## Documentation
 
 - [Getting started](docs/GETTING_STARTED.md)
@@ -271,11 +296,14 @@ directories are not replaced unless `overwrite: true` is explicit.
 - [Replay](docs/REPLAY.md)
 - [Fleet timelines](docs/FLEET_TIMELINES.md)
 - [Artifacts](docs/ARTIFACTS.md)
+- [Dogfooding](docs/DOGFOODING.md)
 - [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Roadmap](docs/Roadmap.md)
 - [Release process](docs/RELEASING.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [v1 release plan](docs/V1_RELEASE_PLAN.md)
+- [GitHub repository setup](docs/GITHUB_REPO_SETUP.md)
+- [npm release setup](docs/NPM_RELEASE_SETUP.md)
 
 ## Example commands
 

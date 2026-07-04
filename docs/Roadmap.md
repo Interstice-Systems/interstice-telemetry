@@ -1,7 +1,7 @@
 # Roadmap
 
-Interstice Telemetry v1.5 is the release-candidate hardening milestone for the
-first public v1.
+Interstice Telemetry `1.0.0-rc.1` is the first public v1 release candidate.
+The v1.1–v1.5 labels below are unpublished internal engineering milestones.
 
 ## Completed stabilization milestones
 
@@ -20,6 +20,8 @@ first public v1.
   provenance coverage, and artifact exporter integration.
 - v1.5: froze candidate APIs, automated declaration and packed-consumer gates,
   expanded serialized fixtures, and hardened runner cleanup.
+- Pre-v1 dogfood patch: added custom-mission artifact export, deterministic
+  diagnostic text rendering, and clarified state/bridge/provenance usage.
 
 Historical feature releases are recorded in `CHANGELOG.md`.
 
@@ -49,6 +51,10 @@ Historical feature releases are recorded in `CHANGELOG.md`.
 ## Post-v1 candidates
 
 - Atomic artifact replacement and optional integrity digests.
+- Command/custom adapter events and explicit adapter operating-state
+  transitions.
+- Richer replay/adapter bridge ergonomics beyond the documented mapper
+  pattern.
 - Internal scenario/fleet runtime deduplication when justified by maintenance.
 - Generated schema compatibility and declaration reports.
 - Mapper conformance and bounded large-timeline indexing.

@@ -9,6 +9,26 @@ fields.
 
 - No unreleased changes.
 
+## 1.0.0-rc.1 — 2026-07-04
+
+The v1.1–v1.5 entries below describe unpublished internal engineering
+milestones. `1.0.0-rc.1` is the first npm release candidate.
+
+### Added
+
+- Generic deterministic custom-mission evidence artifact export with indexed
+  JSON/text reports and explicit overwrite control.
+- Pure deterministic twin diagnostic text rendering.
+
+### Changed
+
+- Clarified canonical `RobotState`, telemetry `RobotOperatingMode`,
+  same-timestamp replay bridge behavior, and provenance seeding.
+- Classified command/custom adapter events, runtime adapter state transitions,
+  and richer bridge helpers as post-v1 work.
+- Standardized GitHub package metadata, updated v1 RC security support, and
+  added local GitHub/npm governance setup and CI package-dry-run gates.
+
 ## 1.5.0 — 2026-07-03
 
 ### Added

@@ -1,9 +1,30 @@
 # RobotState
 
-`RobotState` is the complete deterministic state of one robot at one
+The package-root `RobotState` is the canonical, complete deterministic state
+of one robot at one
 timestamp. Unlike `TelemetrySnapshot`, which is an observation contract,
 `RobotState` is the normalized state reconstructed from one or more
 observations.
+
+Do not use `RobotState` for the status string stored in
+`TelemetrySnapshot.state`. That type is `RobotOperatingMode`:
+
+```ts
+import type {
+  RobotOperatingMode,
+  RobotState,
+} from "interstice-telemetry";
+
+const mode: RobotOperatingMode = "active";
+declare const state: RobotState;
+console.log(state.robotId, state.operatingMode);
+```
+
+`CanonicalRobotOperatingMode` is the optional `operatingMode` field within a
+canonical `RobotState`. It currently has the same values as
+`RobotOperatingMode`, but the names describe different roles. The
+status-only type was called `RobotState` before v1.1; compatibility and correct
+imports are documented in [Migrating to v1.1](MIGRATION_V1_1.md).
 
 The state contains a global pose (position, quaternion orientation, and frame),
 linear and angular velocity, keyed joint states, keyed actuator outputs, keyed

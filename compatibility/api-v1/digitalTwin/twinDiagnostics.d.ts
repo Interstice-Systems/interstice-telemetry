@@ -27,6 +27,14 @@ export interface TwinDiagnosticOptions {
     readonly expectedSceneId?: string;
     readonly includeSchemaIssues?: boolean;
 }
+/**
+ * Renders a deterministic, human-readable diagnostic report.
+ *
+ * The renderer is pure, does not mutate the report, and does not write to the
+ * console. Diagnostics are sorted with the same canonical ordering used by
+ * `createTwinDiagnosticReport`.
+ */
+export declare const renderTwinDiagnosticReport: (report: TwinDiagnosticReport) => string;
 export declare const createTwinDiagnosticReport: (diagnostics: readonly TwinDiagnostic[], provenance?: EvidenceProvenance) => TwinDiagnosticReport;
 export declare const validateRobotState: (state: RobotState | unknown) => TwinDiagnosticReport;
 export declare const runTwinDiagnostics: (timeline: TwinTimeline | unknown, options?: TwinDiagnosticOptions) => TwinDiagnosticReport;

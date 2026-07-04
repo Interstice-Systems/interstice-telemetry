@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createTwinDiagnosticReport,
+  renderTwinDiagnosticReport,
   robotStateFixtureV1_1,
   runTwinDiagnostics,
   twinTimelineFixtureV1_1,
@@ -9,6 +11,56 @@ import {
 } from "../src/index.js";
 
 describe("deterministic twin diagnostics", () => {
+  it("renders empty valid reports deterministically", () => {
+    const report = createTwinDiagnosticReport([]);
+    expect(renderTwinDiagnosticReport(report)).toBe(
+      [
+        "Twin Diagnostic Report",
+        "Valid: yes",
+        "Summary: 0 info, 0 warnings, 0 errors",
+        "",
+        "Diagnostics:",
+        "  None",
+        "",
+      ].join("\n"),
+    );
+    expect(renderTwinDiagnosticReport(report)).toBe(
+      renderTwinDiagnosticReport(report),
+    );
+  });
+
+  it("renders warnings and errors in canonical order with evidence", () => {
+    const report = createTwinDiagnosticReport([
+      {
+        id: "battery.low",
+        severity: "warning",
+        category: "battery",
+        robotId: "rover-0",
+        timestamp: 2_000,
+        message: "Battery is low",
+        evidence: { threshold: 0.2, actual: 0.1 },
+      },
+      {
+        id: "pose.invalid",
+        severity: "error",
+        category: "pose",
+        robotId: "rover-0",
+        timestamp: 1_000,
+        message: "Pose is invalid",
+      },
+    ]);
+
+    const rendered = renderTwinDiagnosticReport(report);
+    expect(rendered).toContain("Valid: no");
+    expect(rendered).toContain("Summary: 0 info, 1 warnings, 1 errors");
+    expect(rendered.indexOf("pose.invalid")).toBeLessThan(
+      rendered.indexOf("battery.low"),
+    );
+    expect(rendered).toContain(
+      'Evidence: {"actual":0.1,"threshold":0.2}',
+    );
+  });
+
   it("accepts a valid state", () => {
     expect(validateRobotState(robotStateFixtureV1_1)).toMatchObject({
       valid: true,

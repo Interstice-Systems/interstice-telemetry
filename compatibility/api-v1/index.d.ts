@@ -29,7 +29,9 @@ export type { ArtifactExportOptions, ArtifactFileContents, ArtifactWriteOptions,
 export { DEFAULT_ARTIFACT_ROOT, sanitizeArtifactPathSegment, writeExperimentArtifacts, } from "./artifacts/artifactWriter.js";
 export { isSafeRelativeArtifactPath, validateExperimentArtifactBundle, } from "./artifacts/artifactValidator.js";
 export { createFleetTelemetrySummary, exportFleetRunArtifacts, } from "./artifacts/fleetArtifactExporter.js";
+export { exportCustomEvidenceArtifacts } from "./artifacts/customEvidenceArtifactExporter.js";
 export { createScenarioTelemetrySummary, exportScenarioRunArtifacts, } from "./artifacts/scenarioArtifactExporter.js";
+export type { CustomEvidenceArtifactExportInput, CustomEvidenceReport, CustomEvidenceReportInput, } from "./artifacts/artifactTypes.js";
 /** Canonical evidence manifests, lineage queries, and provenance coverage. */
 export { addEvidenceEntry, addEvidenceRelationship, buildEvidenceManifestFromArtifactBundle, buildFleetEvidenceManifest, buildScenarioEvidenceManifest, createEvidenceManifest, createEvidenceManifestEntry, createEvidenceRelationship, deserializeEvidenceManifest, serializeEvidenceManifest, } from "./evidence/evidenceManifestBuilder.js";
 export type { CreateEvidenceManifestInput, EvidenceManifestEntryInput, EvidenceRelationshipInput, } from "./evidence/evidenceManifestBuilder.js";
@@ -115,7 +117,7 @@ export type { RobotSimulatorOptions } from "./simulator/robotSimulator.js";
 export { createSeededRandom } from "./simulator/seed.js";
 export type { RandomSource } from "./simulator/seed.js";
 export type { ImuTelemetry, TelemetrySnapshot, Vector3, } from "./types.js";
-/** @deprecated Use `RobotOperatingMode`; renamed in v1.1 to free `RobotState`. */
+/** Simulator/telemetry lifecycle status; called `RobotState` before v1.1. */
 export type { RobotState as RobotOperatingMode } from "./types.js";
 /** Derived global fleet timelines, queries, validation, and reports. */
 export { deserializeFleetEventTimeline, serializeFleetEventTimeline, } from "./timeline/timelineArtifacts.js";
@@ -150,7 +152,7 @@ export type { DigitalTwinSchemaName, SchemaValidationIssue, SchemaValidationResu
 export { buildTwinTimelineFromReplay, buildTwinTimelineFromTelemetry, defaultReplayEventMapper, defaultTelemetrySnapshotMapper, mapReplayEventToState, mapTelemetrySnapshotToState, TELEMETRY_BRIDGE_SOURCES, } from "./digitalTwin/telemetryBridge.js";
 export type { CanonicalRobotState, TelemetryBridgeBuildOptions, TelemetryBridgeContext, TelemetryBridgeMapOptions, TelemetryBridgeSource, TelemetryToStateMapper, } from "./digitalTwin/telemetryBridge.js";
 /** Rule-based deterministic digital-twin evidence diagnostics. */
-export { createTwinDiagnosticReport, runTwinDiagnostics, TWIN_DIAGNOSTIC_SEVERITIES, validateRobotState, validateTwinTimeline, } from "./digitalTwin/twinDiagnostics.js";
+export { createTwinDiagnosticReport, renderTwinDiagnosticReport, runTwinDiagnostics, TWIN_DIAGNOSTIC_SEVERITIES, validateRobotState, validateTwinTimeline, } from "./digitalTwin/twinDiagnostics.js";
 export type { TwinDiagnostic, TwinDiagnosticOptions, TwinDiagnosticReport, TwinDiagnosticSeverity, } from "./digitalTwin/twinDiagnostics.js";
 /** Derived multi-robot state views for future visualization consumers. */
 export { createMultiRobotTwinView, getRobotTwinTimeline, getTwinStatesAtTime, MULTI_ROBOT_TWIN_VIEW_VERSION, summarizeMultiRobotTwinView, validateMultiRobotTwinView, } from "./digitalTwin/multiRobotTwinView.js";

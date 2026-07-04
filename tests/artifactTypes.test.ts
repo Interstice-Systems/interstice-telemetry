@@ -10,7 +10,11 @@ import {
 describe("experiment artifact types", () => {
   it("exposes stable v0.8 artifact constants", () => {
     expect(EXPERIMENT_ARTIFACT_VERSION).toBe("0.8.0");
-    expect(EXPERIMENT_ARTIFACT_KINDS).toEqual(["scenario", "fleet"]);
+    expect(EXPERIMENT_ARTIFACT_KINDS).toEqual([
+      "scenario",
+      "fleet",
+      "custom",
+    ]);
     expect(EXPERIMENT_ARTIFACT_FORMATS).toEqual(["json", "txt"]);
     expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain("telemetry-summary");
     expect(EXPERIMENT_ARTIFACT_FILE_KINDS).toContain(

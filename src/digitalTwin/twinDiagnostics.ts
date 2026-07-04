@@ -1,4 +1,7 @@
-import { toImmutableJson } from "./deterministicJson.js";
+import {
+  deterministicStringify,
+  toImmutableJson,
+} from "./deterministicJson.js";
 import { validateRobotStateSchema, validateTwinTimelineSchema } from "./schemaValidation.js";
 import type { RobotState } from "./robotState.js";
 import { ROBOT_OPERATING_MODES } from "./robotState.js";
@@ -57,6 +60,46 @@ const compareDiagnostics = (
   left.category.localeCompare(right.category) ||
   left.id.localeCompare(right.id) ||
   left.message.localeCompare(right.message);
+
+/**
+ * Renders a deterministic, human-readable diagnostic report.
+ *
+ * The renderer is pure, does not mutate the report, and does not write to the
+ * console. Diagnostics are sorted with the same canonical ordering used by
+ * `createTwinDiagnosticReport`.
+ */
+export const renderTwinDiagnosticReport = (
+  report: TwinDiagnosticReport,
+): string => {
+  const diagnostics = [...report.diagnostics].sort(compareDiagnostics);
+  const lines = [
+    "Twin Diagnostic Report",
+    `Valid: ${report.valid ? "yes" : "no"}`,
+    `Summary: ${report.summary.info} info, ${report.summary.warnings} warnings, ${report.summary.errors} errors`,
+    "",
+    "Diagnostics:",
+  ];
+
+  if (diagnostics.length === 0) {
+    lines.push("  None");
+  } else {
+    diagnostics.forEach((diagnostic, index) => {
+      lines.push(
+        `  ${index + 1}. [${diagnostic.severity.toUpperCase()}] ${diagnostic.category} / ${diagnostic.id}`,
+        `     Robot: ${diagnostic.robotId ?? "-"}`,
+        `     Timestamp: ${diagnostic.timestamp ?? "-"}`,
+        `     Message: ${diagnostic.message}`,
+      );
+      if (diagnostic.evidence !== undefined) {
+        lines.push(
+          `     Evidence: ${deterministicStringify(diagnostic.evidence)}`,
+        );
+      }
+    });
+  }
+
+  return `${lines.join("\n")}\n`;
+};
 
 export const createTwinDiagnosticReport = (
   diagnostics: readonly TwinDiagnostic[],

@@ -13,6 +13,7 @@ They are typechecked with the repository and run synchronously.
 | `npm run example:hardware` | `hardware-adapters.ts` | Virtual adapters and collection | stdout |
 | `npm run example:fleet` | `fleet-scenario.ts` | Sorted multi-robot run and replay | stdout |
 | `npm run example:artifacts` | `experiment-artifacts.ts` | Fleet artifact export/readback | temporary directory, stdout |
+| `npm run example:custom-artifacts` | `custom-mission-artifacts.ts` | Custom evidence export and diagnostic text | temporary directory, stdout |
 | `npm run example:adapter-stream` | `adapter-event-stream.ts` | Adapter events through replay | stdout |
 | `npm run example:clock` | `clock-system.ts` | Four deterministic clock roles | stdout |
 | `npm run example:timeline` | `fleet-timeline.ts` | Timeline build, query, report, export | temporary directory, stdout |

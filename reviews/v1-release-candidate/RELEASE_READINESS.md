@@ -17,8 +17,8 @@ lifecycle cleanup.
 3. Enable and test a private vulnerability reporting channel.
 4. Run CI on the exact clean candidate commit and inspect its tarball.
 5. Complete an RC/design-partner validation period.
-6. Set the actual public version/tag plan; v1.5.0 is an internal milestone and
-   must not be published before the intended v1.0.0 version decision.
+6. Use the resolved public sequence: `1.0.0-rc.1`, then `1.0.0` after the RC
+   period. The v1.1–v1.5 labels are unpublished internal milestones.
 
 ## APIs still experimental
 

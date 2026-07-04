@@ -1,0 +1,108 @@
+import type { ClockInfo } from "../clock/clockTypes.js";
+import type { RobotState } from "../types.js";
+export declare const EXPERIMENT_ARTIFACT_VERSION = "0.8.0";
+export declare const EXPERIMENT_ARTIFACT_KINDS: readonly ["scenario", "fleet", "custom"];
+export type ExperimentArtifactKind = (typeof EXPERIMENT_ARTIFACT_KINDS)[number];
+export declare const EXPERIMENT_ARTIFACT_FILE_KINDS: readonly ["metadata", "scenario", "fleet-scenario", "replay-log", "replay-validation", "fleet-replay-log", "twin-timeline", "diagnostics", "provenance", "report", "validation", "telemetry-summary", "fleet-event-timeline", "timeline-report", "timeline-summary", "evidence-manifest", "evidence-manifest-report", "provenance-coverage-report"];
+export type ExperimentArtifactFileKind = (typeof EXPERIMENT_ARTIFACT_FILE_KINDS)[number];
+export declare const EXPERIMENT_ARTIFACT_FORMATS: readonly ["json", "txt"];
+export type ExperimentArtifactFormat = (typeof EXPERIMENT_ARTIFACT_FORMATS)[number];
+export interface ExperimentMetadata {
+    name: string;
+    description?: string;
+    scenarioId?: string;
+    fleetId?: string;
+    robotIds: string[];
+    tags?: string[];
+    source?: string;
+    clock?: ClockInfo;
+}
+export interface ExperimentArtifactFile {
+    path: string;
+    kind: ExperimentArtifactFileKind;
+    format: ExperimentArtifactFormat;
+    description?: string;
+}
+export interface ExperimentArtifactBundle {
+    version: string;
+    experimentId: string;
+    createdAt: string;
+    kind: ExperimentArtifactKind;
+    metadata: ExperimentMetadata;
+    files: ExperimentArtifactFile[];
+}
+export interface ExperimentArtifactBundleInput {
+    experimentId: string;
+    kind: ExperimentArtifactKind;
+    metadata: ExperimentMetadata;
+    files: ExperimentArtifactFile[];
+    createdAt?: Date | string | number;
+    version?: string;
+}
+export interface ExperimentArtifactValidationResult {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+}
+export interface ArtifactWriteOptions {
+    rootDir?: string;
+    overwrite?: boolean;
+}
+export type ArtifactFileContents = Readonly<Record<string, unknown>>;
+export interface ArtifactWriteResult {
+    experimentPath: string;
+    bundle: ExperimentArtifactBundle;
+    files: string[];
+}
+export interface ExperimentArtifactMetadataDocument {
+    version: string;
+    experimentId: string;
+    createdAt: string;
+    kind: ExperimentArtifactKind;
+    metadata: ExperimentMetadata;
+}
+export interface LoadedExperimentArtifactFile extends ExperimentArtifactFile {
+    content: unknown;
+}
+export interface LoadedExperimentArtifacts {
+    experimentPath: string;
+    bundle: ExperimentArtifactBundle;
+    metadata: ExperimentMetadata;
+    files: LoadedExperimentArtifactFile[];
+    validation: ExperimentArtifactValidationResult;
+    warnings: string[];
+}
+export interface TelemetrySummary {
+    robotIds: string[];
+    eventCount: number;
+    faultCount: number;
+    finalStates: Record<string, RobotState>;
+    durationMs: number;
+}
+export interface ArtifactExportOptions extends ArtifactWriteOptions {
+    experimentId?: string;
+    createdAt?: Date | string | number;
+    metadata?: Partial<ExperimentMetadata>;
+}
+export interface CustomEvidenceReport {
+    readonly content: unknown;
+    readonly format?: ExperimentArtifactFormat;
+    readonly description?: string;
+}
+export type CustomEvidenceReportInput = string | CustomEvidenceReport;
+/**
+ * Application-defined evidence accepted by the generic local artifact
+ * exporter. Values are persisted without requiring a scenario or fleet run.
+ */
+export interface CustomEvidenceArtifactExportInput extends ArtifactWriteOptions {
+    readonly experimentId: string;
+    readonly metadata: ExperimentMetadata;
+    readonly createdAt?: Date | string | number;
+    readonly replayLog?: unknown;
+    readonly replayValidation?: unknown;
+    readonly twinTimeline?: unknown;
+    readonly diagnostics?: unknown;
+    readonly provenance?: unknown;
+    readonly evidenceManifest?: unknown;
+    readonly reports?: Readonly<Record<string, CustomEvidenceReportInput>>;
+}

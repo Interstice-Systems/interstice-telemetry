@@ -68,6 +68,25 @@ because status has its own event.
 The adapter stream is experimental before v1. Event strings and manual
 stepping are expected to remain, while payload typing may be refined.
 
+The stream does not currently emit application commands/custom events or
+expose runtime changes to the collector's configured operating mode. These are
+post-v1 design candidates, not implicit adapter behavior.
+
+To preserve provenance, seed the replay recorder at the stream boundary:
+
+```ts
+const recorder = new ReplayRecorder({
+  provenance: adapterOrigin,
+  createdAt: 0,
+});
+const unsubscribe = stream.subscribe(recorder.record);
+```
+
+Adapter status, reading-change, and snapshot events from one step share the
+step timestamp and remain ordered by sequence. See
+[Telemetry Bridge](TelemetryBridge.md) before integrating motion from these
+events.
+
 ## Implementing an adapter
 
 - Return plain structured data and defensive copies.

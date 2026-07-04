@@ -10,7 +10,7 @@ replay, scenario and fleet execution, clocks, hardware adapters, reports,
 artifacts, canonical digital-twin models, robot state, scenes, replay events,
 twin timelines and cursors, schemas and fixtures, telemetry bridges,
 diagnostics, multi-robot views, provenance and ownership, evidence manifests,
-lineage queries, and provenance coverage.
+lineage queries, provenance coverage, and custom-mission evidence export.
 
 Stable exports retain source-compatible TypeScript signatures and compatible
 serialized behavior throughout v1.x. Additive optional fields and new exports

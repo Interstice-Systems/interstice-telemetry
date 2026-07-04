@@ -6,6 +6,7 @@ export const EXPERIMENT_ARTIFACT_VERSION = "0.8.0";
 export const EXPERIMENT_ARTIFACT_KINDS = [
   "scenario",
   "fleet",
+  "custom",
 ] as const;
 
 export type ExperimentArtifactKind =
@@ -16,7 +17,11 @@ export const EXPERIMENT_ARTIFACT_FILE_KINDS = [
   "scenario",
   "fleet-scenario",
   "replay-log",
+  "replay-validation",
   "fleet-replay-log",
+  "twin-timeline",
+  "diagnostics",
+  "provenance",
   "report",
   "validation",
   "telemetry-summary",
@@ -124,4 +129,29 @@ export interface ArtifactExportOptions extends ArtifactWriteOptions {
   experimentId?: string;
   createdAt?: Date | string | number;
   metadata?: Partial<ExperimentMetadata>;
+}
+
+export interface CustomEvidenceReport {
+  readonly content: unknown;
+  readonly format?: ExperimentArtifactFormat;
+  readonly description?: string;
+}
+
+export type CustomEvidenceReportInput = string | CustomEvidenceReport;
+
+/**
+ * Application-defined evidence accepted by the generic local artifact
+ * exporter. Values are persisted without requiring a scenario or fleet run.
+ */
+export interface CustomEvidenceArtifactExportInput extends ArtifactWriteOptions {
+  readonly experimentId: string;
+  readonly metadata: ExperimentMetadata;
+  readonly createdAt?: Date | string | number;
+  readonly replayLog?: unknown;
+  readonly replayValidation?: unknown;
+  readonly twinTimeline?: unknown;
+  readonly diagnostics?: unknown;
+  readonly provenance?: unknown;
+  readonly evidenceManifest?: unknown;
+  readonly reports?: Readonly<Record<string, CustomEvidenceReportInput>>;
 }

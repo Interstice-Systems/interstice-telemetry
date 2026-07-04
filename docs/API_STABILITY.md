@@ -47,10 +47,12 @@ Stable families:
   `EXPERIMENT_ARTIFACT_VERSION`, artifact kind/format constants and types,
   `validateExperimentArtifactBundle`, `writeExperimentArtifacts`,
   `readExperimentArtifacts`, `exportScenarioRunArtifacts`, and
-  `exportFleetRunArtifacts`.
+  `exportFleetRunArtifacts`. The later v1 freeze also includes
+  `exportCustomEvidenceArtifacts`.
 - Reports: `renderTelemetrySnapshot`, `renderEventTimeline`,
   `renderFaultReport`, `renderReplayReport`, `renderScenarioReport`,
   `renderFleetScenarioReport`, and `renderFleetReplayReport`.
+  The later v1 freeze also includes `renderTwinDiagnosticReport`.
 - Output: `snapshotToJson`.
 
 Stable means the API is intended to survive into v1. It does not mean every
