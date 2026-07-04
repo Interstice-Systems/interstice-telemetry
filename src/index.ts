@@ -74,6 +74,15 @@ export {
 } from "./artifacts/fleetArtifactExporter.js";
 export { exportCustomEvidenceArtifacts } from "./artifacts/customEvidenceArtifactExporter.js";
 export {
+  createCustomExperimentBundle,
+  exportCustomExperimentBundle,
+  renderCustomExperimentSummary,
+} from "./artifacts/customExperimentExporter.js";
+export {
+  isSafeCustomExperimentFileName,
+  validateCustomExperimentBundle,
+} from "./artifacts/customExperimentBundleValidator.js";
+export {
   createScenarioTelemetrySummary,
   exportScenarioRunArtifacts,
 } from "./artifacts/scenarioArtifactExporter.js";
@@ -82,6 +91,14 @@ export type {
   CustomEvidenceReport,
   CustomEvidenceReportInput,
 } from "./artifacts/artifactTypes.js";
+export type {
+  CustomExperimentBundle,
+  CustomExperimentBundleInput,
+  CustomExperimentBundleValidationResult,
+  CustomExperimentEvidence,
+  CustomExperimentExportOptions,
+  CustomExperimentMetadata,
+} from "./artifacts/customExperimentBundle.js";
 
 /** Canonical evidence manifests, lineage queries, and provenance coverage. */
 export {

@@ -48,7 +48,9 @@ Stable families:
   `validateExperimentArtifactBundle`, `writeExperimentArtifacts`,
   `readExperimentArtifacts`, `exportScenarioRunArtifacts`, and
   `exportFleetRunArtifacts`. The later v1 freeze also includes
-  `exportCustomEvidenceArtifacts`.
+  `exportCustomEvidenceArtifacts`, `createCustomExperimentBundle`,
+  `validateCustomExperimentBundle`, `exportCustomExperimentBundle`, and
+  `renderCustomExperimentSummary`.
 - Reports: `renderTelemetrySnapshot`, `renderEventTimeline`,
   `renderFaultReport`, `renderReplayReport`, `renderScenarioReport`,
   `renderFleetScenarioReport`, and `renderFleetReplayReport`.

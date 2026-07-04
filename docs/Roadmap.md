@@ -20,23 +20,18 @@ The v1.1–v1.5 labels below are unpublished internal engineering milestones.
   provenance coverage, and artifact exporter integration.
 - v1.5: froze candidate APIs, automated declaration and packed-consumer gates,
   expanded serialized fixtures, and hardened runner cleanup.
-- Pre-v1 dogfood patch: added custom-mission artifact export, deterministic
-  diagnostic text rendering, and clarified state/bridge/provenance usage.
+- Pre-v1 dogfood patches: added custom-mission artifact export, deterministic
+  diagnostic text rendering, then a generic custom experiment bundle,
+  validation, report, and manifest API.
 
 Historical feature releases are recorded in `CHANGELOG.md`.
 
 ## Required before v1.0
 
-- Add a generated public declaration compatibility gate.
-- Keep the packed-tarball browser-entry consumer gate in release verification.
-- Decide the final status of experimental adapter-stream and fleet-timeline
-  contracts.
-- Decide whether internal-candidate root exports stay, move, or receive a
-  prerelease deprecation.
-- Make runner cleanup exception-safe or explicitly accept the current
-  fail-fast lifecycle risk.
-- Configure authoritative repository, issue, security contact, and maintainer
-  metadata.
+- Review and intentionally accept the additive custom experiment declarations
+  in the v1 compatibility baseline.
+- Confirm authoritative repository ownership, private security contact,
+  maintainer access, npm two-factor authentication, and provenance controls.
 - Run a release-candidate period against the exact packed artifact.
 
 ## Strongly recommended
@@ -44,7 +39,7 @@ Historical feature releases are recorded in `CHANGELOG.md`.
 - Extend golden compatibility fixtures to older non-twin serialized formats.
 - Add single/fleet runner conformance tests.
 - Add risk-based coverage reporting.
-- Smoke-run examples in CI.
+- Keep all examples in CI smoke coverage.
 - Validate loaded documents through explicit safe parse APIs.
 - Gather design-partner feedback from robotics platform and QA engineers.
 

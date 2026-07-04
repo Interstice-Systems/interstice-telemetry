@@ -30,8 +30,11 @@ export { DEFAULT_ARTIFACT_ROOT, sanitizeArtifactPathSegment, writeExperimentArti
 export { isSafeRelativeArtifactPath, validateExperimentArtifactBundle, } from "./artifacts/artifactValidator.js";
 export { createFleetTelemetrySummary, exportFleetRunArtifacts, } from "./artifacts/fleetArtifactExporter.js";
 export { exportCustomEvidenceArtifacts } from "./artifacts/customEvidenceArtifactExporter.js";
+export { createCustomExperimentBundle, exportCustomExperimentBundle, renderCustomExperimentSummary, } from "./artifacts/customExperimentExporter.js";
+export { isSafeCustomExperimentFileName, validateCustomExperimentBundle, } from "./artifacts/customExperimentBundleValidator.js";
 export { createScenarioTelemetrySummary, exportScenarioRunArtifacts, } from "./artifacts/scenarioArtifactExporter.js";
 export type { CustomEvidenceArtifactExportInput, CustomEvidenceReport, CustomEvidenceReportInput, } from "./artifacts/artifactTypes.js";
+export type { CustomExperimentBundle, CustomExperimentBundleInput, CustomExperimentBundleValidationResult, CustomExperimentEvidence, CustomExperimentExportOptions, CustomExperimentMetadata, } from "./artifacts/customExperimentBundle.js";
 /** Canonical evidence manifests, lineage queries, and provenance coverage. */
 export { addEvidenceEntry, addEvidenceRelationship, buildEvidenceManifestFromArtifactBundle, buildFleetEvidenceManifest, buildScenarioEvidenceManifest, createEvidenceManifest, createEvidenceManifestEntry, createEvidenceRelationship, deserializeEvidenceManifest, serializeEvidenceManifest, } from "./evidence/evidenceManifestBuilder.js";
 export type { CreateEvidenceManifestInput, EvidenceManifestEntryInput, EvidenceRelationshipInput, } from "./evidence/evidenceManifestBuilder.js";

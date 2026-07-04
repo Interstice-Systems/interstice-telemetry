@@ -14,6 +14,7 @@ They are typechecked with the repository and run synchronously.
 | `npm run example:fleet` | `fleet-scenario.ts` | Sorted multi-robot run and replay | stdout |
 | `npm run example:artifacts` | `experiment-artifacts.ts` | Fleet artifact export/readback | temporary directory, stdout |
 | `npm run example:custom-artifacts` | `custom-mission-artifacts.ts` | Custom evidence export and diagnostic text | temporary directory, stdout |
+| `npm run example:custom-experiment` | `custom-experiment-bundle.ts` | Generic custom bundle validation, manifest derivation, and export | temporary directory, stdout |
 | `npm run example:adapter-stream` | `adapter-event-stream.ts` | Adapter events through replay | stdout |
 | `npm run example:clock` | `clock-system.ts` | Four deterministic clock roles | stdout |
 | `npm run example:timeline` | `fleet-timeline.ts` | Timeline build, query, report, export | temporary directory, stdout |
@@ -27,7 +28,8 @@ They are typechecked with the repository and run synchronously.
 5. `example:fleet`
 6. `example:timeline`
 7. `example:artifacts`
-8. adapter, clock, and report examples as needed
+8. `example:custom-experiment`
+9. adapter, clock, and report examples as needed
 
 ## What to verify
 

@@ -25,7 +25,8 @@ background loops, network connections, or hardware polling.
 - A derived global fleet event timeline.
 - Pure terminal reports.
 - Versioned local experiment artifacts.
-- Generic custom-mission evidence artifact export.
+- Generic custom experiment creation, validation, manifest derivation, and
+  artifact export.
 - Synchronous hardware adapter contracts and virtual adapters.
 - Immutable robot structure and environment metadata.
 - Complete deterministic `RobotState` snapshots.
@@ -248,24 +249,34 @@ console.log(loaded.validation);
 Artifact persistence is synchronous and Node-only. Existing experiment
 directories are not replaced unless `overwrite: true` is explicit.
 
-Applications that do not use a built-in runner can export the same indexed
-layout without manufacturing a scenario result:
+Applications that do not use a built-in runner can create and validate a
+generic bundle without manufacturing a scenario result:
 
 ```ts
-import { exportCustomEvidenceArtifacts } from "interstice-telemetry";
+import {
+  createCustomExperimentBundle,
+  exportCustomExperimentBundle,
+  validateCustomExperimentBundle,
+} from "interstice-telemetry";
 
-exportCustomEvidenceArtifacts({
+const bundle = createCustomExperimentBundle({
   experimentId: "rover-0-mission",
-  rootDir: "artifacts",
   metadata: { name: "Rover-0 mission", robotIds: ["rover-0"] },
-  replayLog,
-  replayValidation,
-  twinTimeline,
-  diagnostics,
-  provenance,
-  evidenceManifest,
-  reports: { "mission-report.txt": missionReport },
+  evidence: {
+    replayLog,
+    replayValidation,
+    twinTimeline,
+    diagnostics,
+    provenance,
+  },
+  customJson: { metrics },
+  reports: { "mission-report": missionReport },
 });
+
+if (!validateCustomExperimentBundle(bundle).valid) {
+  throw new Error("Invalid experiment bundle");
+}
+exportCustomExperimentBundle(bundle, { rootDir: "artifacts" });
 ```
 
 ## Documentation
@@ -296,6 +307,7 @@ exportCustomEvidenceArtifacts({
 - [Replay](docs/REPLAY.md)
 - [Fleet timelines](docs/FLEET_TIMELINES.md)
 - [Artifacts](docs/ARTIFACTS.md)
+- [Custom experiments](docs/CUSTOM_EXPERIMENTS.md)
 - [Dogfooding](docs/DOGFOODING.md)
 - [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Roadmap](docs/Roadmap.md)
@@ -316,6 +328,7 @@ npm run example:console
 npm run example:hardware
 npm run example:fleet
 npm run example:artifacts
+npm run example:custom-experiment
 npm run example:adapter-stream
 npm run example:clock
 npm run example:timeline

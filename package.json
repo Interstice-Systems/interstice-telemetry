@@ -55,6 +55,7 @@
     "example:fleet": "tsx examples/fleet-scenario.ts",
     "example:artifacts": "tsx examples/experiment-artifacts.ts",
     "example:custom-artifacts": "tsx examples/custom-mission-artifacts.ts",
+    "example:custom-experiment": "tsx examples/custom-experiment-bundle.ts",
     "example:adapter-stream": "tsx examples/adapter-event-stream.ts",
     "example:clock": "tsx examples/clock-system.ts",
     "example:timeline": "tsx examples/fleet-timeline.ts",

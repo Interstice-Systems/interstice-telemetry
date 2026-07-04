@@ -30,8 +30,12 @@ if (!existsSync(dist)) {
 }
 
 if (update) {
-  rmSync(baseline, { recursive: true, force: true });
-  mkdirSync(dirname(baseline), { recursive: true });
+  if (existsSync(baseline)) {
+    for (const file of declarationFiles(baseline)) {
+      rmSync(join(baseline, file));
+    }
+  }
+  mkdirSync(baseline, { recursive: true });
   for (const file of declarationFiles(dist)) {
     const destination = join(baseline, file);
     mkdirSync(dirname(destination), { recursive: true });

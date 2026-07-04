@@ -22,32 +22,40 @@ const written = exportFleetRunArtifacts(fleetResult, {
 });
 ```
 
-Custom applications can package SDK and application evidence without creating
-a scenario or fleet result:
+Custom applications can build, validate, and package SDK and application
+evidence without creating a scenario or fleet result:
 
 ```ts
-const written = exportCustomEvidenceArtifacts({
+const bundle = createCustomExperimentBundle({
   experimentId: "rover-0-mission",
-  rootDir: "artifacts",
   metadata: {
     name: "Rover-0 deterministic mission",
     robotIds: ["rover-0"],
   },
-  replayLog,
-  replayValidation,
-  twinTimeline,
-  diagnostics,
-  provenance,
-  evidenceManifest,
-  reports: {
-    "mission-report.txt": renderMissionReport(mission),
-    "metrics.json": { format: "json", content: mission.metrics },
+  evidence: {
+    replayLog,
+    replayValidation,
+    twinTimeline,
+    diagnostics,
+    provenance,
   },
+  customJson: { metrics: mission.metrics },
+  reports: {
+    "mission-report": renderMissionReport(mission),
+  },
+});
+
+const validation = validateCustomExperimentBundle(bundle);
+const written = exportCustomExperimentBundle(bundle, {
+  rootDir: "artifacts",
 });
 ```
 
 Writers refuse to replace an existing experiment directory by default. Set
 `overwrite: true` only when replacement is intended.
+
+`exportCustomEvidenceArtifacts` remains available for compatibility with the
+earlier flat custom-evidence input.
 
 ## Scenario layout
 
@@ -89,7 +97,7 @@ evidence, and a derived timeline:
     reports/
 ```
 
-## Custom mission layout
+## Custom experiment layout
 
 The custom exporter always writes the metadata and index. Other canonical
 paths are included only when their input is supplied:
@@ -105,14 +113,20 @@ paths are included only when their input is supplied:
   provenance.json
   evidence/
     evidence-manifest.json
+  custom/
+    <application-defined JSON>.json
   reports/
-    <application-defined files>
+    <application-defined text>.txt
 ```
 
-String report values are text. Structured report descriptors may select
-`"json"` or `"txt"` and provide an optional description. Report names are
-safe relative paths beneath `reports/` and are indexed in lexical order.
-Inputs are not mutated.
+Custom JSON and report keys are safe portable file names rather than paths.
+Extensions are added when omitted. Entries are indexed in lexical order and
+inputs are not mutated. A deterministic minimal manifest is derived by default
+when evidence exists and the caller does not supply one. Set
+`deriveEvidenceManifest: false` to opt out.
+
+See [Custom Experiments](CUSTOM_EXPERIMENTS.md) for the complete API,
+validation, manifest behavior, and limitations.
 
 ## Index and versions
 
@@ -124,8 +138,10 @@ Custom bundles use kind `custom`; existing scenario and fleet kinds and layouts
 are unchanged.
 
 `validateExperimentArtifactBundle` rejects unsupported versions, unsafe or
-duplicate paths, unknown kinds/formats, and missing core metadata. Serialized
-replay and timeline files carry their own independent format versions.
+duplicate paths, unknown kinds/formats, and missing core metadata. Custom
+artifact metadata permits an empty `robotIds` array; scenario and fleet
+metadata still require at least one robot. Serialized replay and timeline
+files carry their own independent format versions.
 
 ## Reading
 

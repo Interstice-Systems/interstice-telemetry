@@ -46,10 +46,12 @@ try {
   writeFileSync(
     join(consumer, "consumer.mjs"),
     [
-      'import { EVIDENCE_MANIFEST_VERSION, createEvidenceManifest } from "interstice-telemetry";',
+      'import { EVIDENCE_MANIFEST_VERSION, createCustomExperimentBundle, createEvidenceManifest, validateCustomExperimentBundle } from "interstice-telemetry";',
       'import { createRobotState } from "interstice-telemetry/digital-twin";',
       'if (EVIDENCE_MANIFEST_VERSION !== "1.0.0") throw new Error("root export failed");',
       'if (createEvidenceManifest({ experimentId: "packed" }).experimentId !== "packed") throw new Error("manifest failed");',
+      'const bundle = createCustomExperimentBundle({ experimentId: "packed-custom", metadata: { name: "Packed custom experiment" } });',
+      'if (!validateCustomExperimentBundle(bundle).valid) throw new Error("custom experiment failed");',
       'if (typeof createRobotState !== "function") throw new Error("browser export failed");',
     ].join("\n"),
   );
@@ -58,11 +60,12 @@ try {
   writeFileSync(
     join(consumer, "consumer.ts"),
     [
-      'import { createEvidenceManifest, type EvidenceManifest } from "interstice-telemetry";',
+      'import { createCustomExperimentBundle, createEvidenceManifest, type CustomExperimentBundle, type EvidenceManifest } from "interstice-telemetry";',
       'import { type RobotState } from "interstice-telemetry/digital-twin";',
       'const manifest: EvidenceManifest = createEvidenceManifest({ experimentId: "typed" });',
+      'const bundle: CustomExperimentBundle = createCustomExperimentBundle({ experimentId: "typed-custom", metadata: { name: "Typed custom experiment" } });',
       "const state: RobotState | undefined = undefined;",
-      "void manifest; void state;",
+      "void manifest; void bundle; void state;",
     ].join("\n"),
   );
   writeFileSync(

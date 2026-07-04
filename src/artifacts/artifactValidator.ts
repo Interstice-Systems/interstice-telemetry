@@ -69,9 +69,13 @@ export const validateExperimentArtifactBundle = (
 
     if (
       !Array.isArray(bundle.metadata.robotIds) ||
-      bundle.metadata.robotIds.length === 0
+      (bundle.kind !== "custom" && bundle.metadata.robotIds.length === 0)
     ) {
-      errors.push("Experiment metadata robotIds must not be empty.");
+      errors.push(
+        bundle.kind === "custom"
+          ? "Experiment metadata robotIds must be an array."
+          : "Experiment metadata robotIds must not be empty.",
+      );
     } else if (!bundle.metadata.robotIds.every(isNonEmptyString)) {
       errors.push("Experiment metadata robotIds must contain only strings.");
     }

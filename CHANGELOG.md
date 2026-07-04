@@ -7,7 +7,19 @@ fields.
 
 ## Unreleased
 
-- No unreleased changes.
+### Added
+
+- Generic custom experiment bundle creation, structured validation, custom
+  JSON and text report export, deterministic derived evidence manifests, and
+  a custom experiment summary renderer.
+- Custom experiment documentation, example, and release-candidate regression
+  coverage.
+
+### Changed
+
+- Custom artifact validation now permits an empty robot list for generic
+  experiments while preserving scenario and fleet requirements.
+- The earlier `exportCustomEvidenceArtifacts` API remains available unchanged.
 
 ## 1.0.0-rc.1 — 2026-07-04
 

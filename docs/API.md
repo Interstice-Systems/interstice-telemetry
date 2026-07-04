@@ -202,6 +202,9 @@ evidence:
 
 - `exportScenarioRunArtifacts`
 - `exportFleetRunArtifacts`
+- `createCustomExperimentBundle`
+- `validateCustomExperimentBundle`
+- `exportCustomExperimentBundle`
 - `exportCustomEvidenceArtifacts`
 - `readExperimentArtifacts`
 
@@ -209,10 +212,12 @@ Artifact persistence is synchronous, local-filesystem, Node-only behavior.
 Writers refuse to replace an existing experiment unless `overwrite: true` is
 set. Replacement is not atomic.
 
-`exportCustomEvidenceArtifacts` accepts application-owned replay, validation,
-twin, diagnostic, provenance, manifest, and report values without requiring a
-scenario or fleet result. Low-level bundle construction and path helpers are
-internal candidates.
+The custom experiment workflow accepts application-owned replay, validation,
+twin, diagnostic, provenance, manifest, telemetry summary, custom JSON, and
+text report values without requiring a scenario or fleet result. It derives a
+minimal manifest by default. `exportCustomEvidenceArtifacts` retains the
+earlier flat-input workflow for compatibility. Low-level artifact construction
+and path helpers are internal candidates.
 
 ## Reports and JSON output
 
