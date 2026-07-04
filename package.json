@@ -1,8 +1,16 @@
 {
   "name": "interstice-telemetry",
-  "version": "1.1.0",
+  "version": "1.5.0",
   "description": "Deterministic telemetry, replay, and digital-twin contracts for autonomous systems.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/interstice-robotics/interstice-telemetry.git"
+  },
+  "homepage": "https://github.com/interstice-robotics/interstice-telemetry#readme",
+  "bugs": {
+    "url": "https://github.com/interstice-robotics/interstice-telemetry/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "dist/index.js",
@@ -11,10 +19,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./digital-twin": {
+      "types": "./dist/digitalTwin/browser.d.ts",
+      "import": "./dist/digitalTwin/browser.js"
     }
   },
   "files": [
     "dist",
+    "fixtures",
     "docs",
     "examples",
     "README.md",
@@ -28,7 +41,11 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "check": "npm test && npm run typecheck && npm run lint && npm run build",
+    "check": "npm test && npm run typecheck && npm run lint && npm run build && node scripts/check-api-compatibility.mjs",
+    "api:check": "npm run build && node scripts/check-api-compatibility.mjs",
+    "api:update": "npm run build && node scripts/check-api-compatibility.mjs --update",
+    "test:packed": "npm run build && node scripts/test-packed-consumers.mjs",
+    "check:release": "npm run check && npm run test:packed",
     "example": "tsx examples/basic-simulation.ts",
     "example:stream": "tsx examples/event-stream.ts",
     "example:replay": "tsx examples/replay-log.ts",
@@ -39,7 +56,15 @@
     "example:artifacts": "tsx examples/experiment-artifacts.ts",
     "example:adapter-stream": "tsx examples/adapter-event-stream.ts",
     "example:clock": "tsx examples/clock-system.ts",
-    "example:timeline": "tsx examples/fleet-timeline.ts"
+    "example:timeline": "tsx examples/fleet-timeline.ts",
+    "example:provenance": "tsx examples/provenance/basic.ts",
+    "example:provenance:replay": "tsx examples/provenance/replay.ts",
+    "example:provenance:twin": "tsx examples/provenance/twin.ts",
+    "example:provenance:ownership": "tsx examples/provenance/ownership.ts",
+    "example:evidence:manifest": "tsx examples/evidence/manifest-basic.ts",
+    "example:evidence:artifacts": "tsx examples/evidence/manifest-artifacts.ts",
+    "example:evidence:lineage": "tsx examples/evidence/lineage-query.ts",
+    "example:evidence:coverage": "tsx examples/evidence/provenance-coverage.ts"
   },
   "engines": {
     "node": ">=20"
@@ -51,6 +76,8 @@
     "simulation",
     "replay",
     "digital-twin",
+    "evidence",
+    "provenance",
     "autonomous-systems",
     "deterministic-testing"
   ],
@@ -65,5 +92,8 @@
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.35.0",
     "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
   }
 }

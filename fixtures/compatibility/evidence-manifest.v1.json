@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "manifestId": "manifest-compat-experiment",
+  "experimentId": "compat-experiment",
+  "createdAt": "1970-01-01T00:00:01.000Z",
+  "evidence": [
+    {
+      "evidenceId": "compat-replay",
+      "kind": "replay-log",
+      "path": "replay-log.json",
+      "robotId": "compat-rover",
+      "timestamp": 1000,
+      "provenanceId": "prov-compat-rover",
+      "format": "json"
+    }
+  ],
+  "relationships": [],
+  "metadata": {
+    "fixture": true
+  }
+}

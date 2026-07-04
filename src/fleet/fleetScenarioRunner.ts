@@ -162,35 +162,46 @@ export class FleetScenarioRunner {
     let elapsedMs = 0;
     let stepCount = 0;
 
-    for (const runtime of runtimes) {
-      runtime.recorder.start();
-      runtime.stream.start();
-      injectReachedFaults(runtime, elapsedMs);
-    }
-
-    while (elapsedMs < scenario.durationMs) {
-      const deltaMs = Math.min(
-        scenario.stepMs,
-        scenario.durationMs - elapsedMs,
-      );
-
+    let completed = false;
+    try {
       for (const runtime of runtimes) {
-        runtime.stream.step(deltaMs);
-      }
-
-      this.clock?.step(deltaMs);
-      elapsedMs += deltaMs;
-      stepCount += 1;
-
-      for (const runtime of runtimes) {
+        runtime.recorder.start();
+        runtime.stream.start();
         injectReachedFaults(runtime, elapsedMs);
       }
-    }
 
-    for (const runtime of runtimes) {
-      runtime.stream.stop();
-      runtime.recorder.stop();
-      runtime.unsubscribe();
+      while (elapsedMs < scenario.durationMs) {
+        const deltaMs = Math.min(
+          scenario.stepMs,
+          scenario.durationMs - elapsedMs,
+        );
+
+        for (const runtime of runtimes) {
+          runtime.stream.step(deltaMs);
+        }
+
+        this.clock?.step(deltaMs);
+        elapsedMs += deltaMs;
+        stepCount += 1;
+
+        for (const runtime of runtimes) {
+          injectReachedFaults(runtime, elapsedMs);
+        }
+      }
+
+      for (const runtime of runtimes) {
+        runtime.stream.stop();
+        runtime.recorder.stop();
+      }
+      completed = true;
+    } finally {
+      for (const runtime of runtimes) runtime.unsubscribe();
+      if (!completed) {
+        for (const runtime of runtimes) {
+          runtime.stream.stop();
+          runtime.recorder.stop();
+        }
+      }
     }
 
     const robotResults = Object.fromEntries(

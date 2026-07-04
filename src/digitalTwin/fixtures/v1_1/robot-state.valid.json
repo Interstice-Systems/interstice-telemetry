@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "timestamp": 1000,
+  "robotId": "rover-1",
+  "operatingMode": "active",
+  "globalPose": {
+    "frameId": "world",
+    "position": { "x": 1, "y": 0, "z": 0 },
+    "orientation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+  },
+  "linearVelocity": { "x": 1, "y": 0, "z": 0 },
+  "angularVelocity": { "x": 0, "y": 0, "z": 0.1 },
+  "jointStates": {
+    "left-wheel": { "position": 2, "velocity": 1 },
+    "right-wheel": { "position": 2, "velocity": 1 }
+  },
+  "actuatorOutputs": { "left-motor": 0.5, "right-motor": 0.5 },
+  "sensorValues": { "imu": { "yawRate": 0.1 } },
+  "batteryStatus": { "charge": 0.8, "voltage": 24 },
+  "healthIndicators": [{ "id": "system", "level": "nominal" }],
+  "metadata": { "sceneId": "robotics-lab-1" }
+}

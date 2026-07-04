@@ -1,4 +1,5 @@
 import type { TelemetryEvent } from "../events/eventTypes.js";
+import type { EvidenceProvenance } from "../provenance/provenanceTypes.js";
 
 export const REPLAY_LOG_VERSION = "0.3.0";
 
@@ -10,6 +11,7 @@ export interface ReplayLog {
   eventCount: number;
   events: TelemetryEvent[];
   metadata?: Record<string, unknown>;
+  provenance?: EvidenceProvenance;
 }
 
 export const serializeReplayLog = (log: ReplayLog): string =>

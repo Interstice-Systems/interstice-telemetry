@@ -11,6 +11,17 @@ import type {
 } from "./model.js";
 
 export const ROBOT_STATE_VERSION = "1.0.0";
+export const ROBOT_OPERATING_MODES = [
+  "idle",
+  "active",
+  "returning",
+  "charging",
+  "faulted",
+  "offline",
+] as const;
+
+export type CanonicalRobotOperatingMode =
+  (typeof ROBOT_OPERATING_MODES)[number];
 
 export interface Pose {
   readonly frameId: string;
@@ -45,6 +56,7 @@ export interface RobotState {
   /** Integer milliseconds in the timeline's declared clock domain. */
   readonly timestamp: number;
   readonly robotId: string;
+  readonly operatingMode?: CanonicalRobotOperatingMode;
   readonly globalPose: Pose;
   readonly linearVelocity: Vector3;
   readonly angularVelocity: Vector3;

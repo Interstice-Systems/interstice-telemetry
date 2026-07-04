@@ -67,24 +67,33 @@ export class ScenarioRunner {
       }
     };
 
-    recorder.start();
-    stream.start();
-    injectReachedFaults();
-
-    while (elapsedMs < scenario.durationMs) {
-      const deltaMs = Math.min(
-        scenario.stepMs,
-        scenario.durationMs - elapsedMs,
-      );
-      stream.step(deltaMs);
-      elapsedMs += deltaMs;
-      stepCount += 1;
+    let completed = false;
+    try {
+      recorder.start();
+      stream.start();
       injectReachedFaults();
-    }
 
-    stream.stop();
-    recorder.stop();
-    unsubscribe();
+      while (elapsedMs < scenario.durationMs) {
+        const deltaMs = Math.min(
+          scenario.stepMs,
+          scenario.durationMs - elapsedMs,
+        );
+        stream.step(deltaMs);
+        elapsedMs += deltaMs;
+        stepCount += 1;
+        injectReachedFaults();
+      }
+
+      stream.stop();
+      recorder.stop();
+      completed = true;
+    } finally {
+      unsubscribe();
+      if (!completed) {
+        stream.stop();
+        recorder.stop();
+      }
+    }
 
     const events = recorder.getEvents();
     const replayLog = recorder.toLog({

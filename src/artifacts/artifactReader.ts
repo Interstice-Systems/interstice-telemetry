@@ -52,6 +52,13 @@ const inferFileKind = (
   if (name === "replay-log.json") return "replay-log";
   if (name === "validation.json") return "validation";
   if (path === "telemetry-summary.json") return "telemetry-summary";
+  if (path === "evidence/evidence-manifest.json") return "evidence-manifest";
+  if (path === "evidence/evidence-manifest-report.txt") {
+    return "evidence-manifest-report";
+  }
+  if (path === "evidence/provenance-coverage-report.txt") {
+    return "provenance-coverage-report";
+  }
   if (extname(path) === ".txt" && path.includes("reports/")) return "report";
   return undefined;
 };

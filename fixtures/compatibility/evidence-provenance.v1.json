@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "provenanceId": "prov-compat-rover",
+  "sourceType": "simulation",
+  "sourceName": "CompatibilityFixture",
+  "robotId": "compat-rover",
+  "timestamp": 1000,
+  "createdAt": "1970-01-01T00:00:01.000Z",
+  "confidence": "exact",
+  "transformationHistory": [],
+  "ownership": {
+    "ownerType": "local",
+    "visibility": "private"
+  },
+  "metadata": {
+    "fixture": true
+  }
+}

@@ -1,21 +1,20 @@
 # Digital Twin Roadmap
 
-The v1.1 foundation deliberately stops at deterministic contracts. Future
-releases should extend this foundation in layers and avoid making core models
-depend on a particular simulator or robotics middleware.
+The v1.2 foundation deliberately stops at deterministic contracts, validation,
+bridges, diagnostics, and derived state views. Future releases should extend
+this foundation in layers and avoid making core models depend on a particular
+simulator or robotics middleware.
 
-## Recommended v1.2 scope
+## Recommended v1.3 scope
 
-1. Add explicit validators that return diagnostics without throwing and
-   publish JSON Schema documents for every v1.1 top-level artifact.
-2. Add opt-in bridges from existing `TelemetrySnapshot` and adapter readings
-   to `RobotState`, with versioned unit and field-mapping policies.
-3. Define multi-robot twin timelines as derived views over independent robot
-   timelines, reusing the existing fleet total-order rules.
-4. Add compatibility fixtures and schema migration tests for all published
-   digital-twin artifact versions.
-5. Add package subpath exports so browser-safe domain contracts can be used
-   without importing Node-only artifact persistence.
+1. Generate schema compatibility reports and declaration-level API gates.
+2. Add mapper conformance helpers for identity, timestamp, immutability, and
+   repeatability checks.
+3. Add bounded indexes for large timeline point-in-time queries without
+   changing serialized timeline formats.
+4. Make evidence provenance and unit/frame mapping policies explicit.
+5. Expand compatibility fixtures to replay, fleet, timeline, and artifact
+   formats that predate the digital-twin contracts.
 
 ## Simulation
 
@@ -23,7 +22,7 @@ A simulation runtime may consume robot structure, scene metadata, and an
 initial state. Physics engines should remain replaceable ports and return new
 states. Dynamics parameters, collision geometry, integrator choice, and
 randomness policy require separate versioned contracts; they should not be
-smuggled into v1.1 structural fields.
+smuggled into structural fields.
 
 ## Robotics integrations
 
@@ -45,4 +44,4 @@ and provenance.
 Schema versions, deterministic ordering, immutable ownership boundaries, and
 transport independence are architectural invariants. New capabilities should
 arrive as adapters, derived artifacts, or independently versioned contracts
-before changing any v1.1 field semantics.
+before changing any existing field semantics.

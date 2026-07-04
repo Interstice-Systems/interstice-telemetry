@@ -7,9 +7,9 @@ recording, replaying, validating, and inspecting repeatable robot telemetry
 experiments. It gives robotics teams useful software evidence before hardware
 is available, safe, or reproducible.
 
-Version 1.1 also provides immutable robot, complete-state, scene, timeline,
-and replay-event contracts. These form a transport- and engine-independent
-digital twin foundation for long-lived autonomous systems.
+Version 1.5 is the public v1 release-candidate engineering milestone. It freezes
+candidate APIs, gates declarations and serialized fixtures, tests packed
+consumers, and hardens runner cleanup.
 
 The SDK is synchronous and manually stepped. It does not start timers,
 background loops, network connections, or hardware polling.
@@ -28,6 +28,13 @@ background loops, network connections, or hardware polling.
 - Immutable robot structure and environment metadata.
 - Complete deterministic `RobotState` snapshots.
 - Reconstructable twin timelines and ordered replay markers.
+- JSON Schema validation and stable v1.1 compatibility fixtures.
+- Explicit telemetry/replay-to-state bridge interfaces.
+- Rule-based diagnostics and derived multi-robot twin views.
+- Browser-safe `interstice-telemetry/digital-twin` exports.
+- Immutable provenance, ownership, validation, reports, and propagation.
+- Canonical evidence manifests, lineage queries, and provenance coverage.
+- API/serialization compatibility gates and packed-consumer verification.
 - Future-facing platform interfaces without platform implementations.
 
 It is not a physics engine, renderer, robot controller, production telemetry
@@ -92,7 +99,12 @@ simulate / adapt
   -> build fleet timeline
   -> render reports
   -> export artifacts
+  -> derive evidence manifest
 ```
+
+Optional provenance follows evidence through this pipeline without changing
+legacy shapes. It describes origin and transformation history; it does not
+prove authenticity.
 
 The models remain separate on purpose:
 
@@ -105,6 +117,12 @@ The models remain separate on purpose:
 - `FleetReplayLog` retains independent replay logs for multiple robots.
 - `FleetEventTimeline` derives a canonical cross-robot order.
 - `ExperimentArtifactBundle` indexes persisted JSON and text evidence.
+- `EvidenceProvenance` describes origin, confidence, ownership, and transforms.
+- `EvidenceManifest` inventories an experiment package and its relationships.
+
+See [Evidence Provenance](docs/EvidenceProvenance.md), [Evidence
+Ownership](docs/EvidenceOwnership.md), [Evidence Manifest](docs/EvidenceManifest.md),
+and [Evidence Lineage](docs/EvidenceLineage.md).
 
 ## Digital twin quick start
 
@@ -135,6 +153,10 @@ console.log(cursor.seek(5_000));
 The reconstruction callback is application-owned because telemetry meaning,
 units, and completeness depend on the producer. Input records are ordered by
 timestamp, sequence, then identifier before reconstruction.
+
+The SDK does not infer perfect physical state automatically. It provides
+stable contracts and deterministic tools so applications can map evidence
+into canonical robot state.
 
 ## Core workflows
 
@@ -226,14 +248,25 @@ directories are not replaced unless `overwrite: true` is explicit.
 - [Getting started](docs/GETTING_STARTED.md)
 - [API reference](docs/API.md)
 - [API stability](docs/API_STABILITY.md)
+- [v1 API freeze](docs/API_FREEZE_V1.md)
 - [Determinism contract](docs/DETERMINISM.md)
 - [Architecture](docs/Architecture.md)
 - [Digital twin architecture](docs/DigitalTwinArchitecture.md)
+- [Digital twin schemas](docs/DigitalTwinSchemas.md)
+- [Telemetry bridge](docs/TelemetryBridge.md)
+- [Twin diagnostics](docs/TwinDiagnostics.md)
+- [Multi-robot twin view](docs/MultiRobotTwinView.md)
+- [Browser-safe exports](docs/BrowserExports.md)
 - [RobotState](docs/RobotState.md)
 - [Twin timeline](docs/TwinTimeline.md)
 - [Scene model](docs/SceneModel.md)
 - [Digital twin roadmap](docs/FutureRoadmap.md)
-- [v1.1 migration](docs/MIGRATION_V1_1.md)
+- [v1.2 migration](docs/MIGRATION_V1_2.md)
+- [v1.3 migration](docs/MIGRATION_V1_3.md)
+- [Evidence manifest](docs/EvidenceManifest.md)
+- [Evidence lineage](docs/EvidenceLineage.md)
+- [Provenance coverage](docs/ProvenanceCoverage.md)
+- [v1.4 migration](docs/MIGRATION_V1_4.md)
 - [Examples](docs/EXAMPLES.md)
 - [Replay](docs/REPLAY.md)
 - [Fleet timelines](docs/FLEET_TIMELINES.md)
@@ -241,6 +274,8 @@ directories are not replaced unless `overwrite: true` is explicit.
 - [Hardware adapters](docs/HARDWARE_ADAPTERS.md)
 - [Roadmap](docs/Roadmap.md)
 - [Release process](docs/RELEASING.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)
+- [v1 release plan](docs/V1_RELEASE_PLAN.md)
 
 ## Example commands
 
@@ -256,6 +291,10 @@ npm run example:artifacts
 npm run example:adapter-stream
 npm run example:clock
 npm run example:timeline
+npm run example:evidence:manifest
+npm run example:evidence:artifacts
+npm run example:evidence:lineage
+npm run example:evidence:coverage
 ```
 
 See [Examples](docs/EXAMPLES.md) for expected behavior and side effects.
@@ -274,15 +313,18 @@ See [Examples](docs/EXAMPLES.md) for expected behavior and side effects.
 - Fleet timelines are derived after a run, not assigned to live events.
 - Persistence uses local JSON and text directories without atomic replacement,
   compression, integrity digests, or cloud storage.
-- The package is Node.js ESM and the root includes Node filesystem APIs.
+- The root entry is Node.js ESM and includes Node filesystem APIs; the
+  `digital-twin` subpath is browser-safe.
 - Report text is intended for humans, not as a machine-readable format.
+- Manifests and coverage describe declared evidence; they do not authenticate
+  files or establish trust.
 
-## v1.2 direction
+## v1 release-candidate direction
 
-The next recommended work is JSON Schema and diagnostic validation, explicit
-telemetry-to-state bridges, multi-robot twin views, compatibility fixtures,
-and browser-safe package subpaths. Physics, rendering, robotics middleware,
-hardware I/O, and networking remain external integrations.
+The remaining work is external release confirmation: repository ownership,
+private security reporting, npm publishing controls, and an RC validation
+period. Physics, rendering, robotics middleware, hardware I/O, networking, and
+cloud services remain external integrations.
 
 See [Roadmap](docs/Roadmap.md).
 

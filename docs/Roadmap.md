@@ -1,7 +1,7 @@
 # Roadmap
 
-Interstice Telemetry v1.1 provides the stable digital-twin foundation in
-addition to the original telemetry evidence pipeline.
+Interstice Telemetry v1.5 is the release-candidate hardening milestone for the
+first public v1.
 
 ## Completed stabilization milestones
 
@@ -11,13 +11,22 @@ addition to the original telemetry evidence pipeline.
 - v0.14: added licensing, governance, CI, changelog, package metadata, and a
   release checklist.
 - v0.15: reorganized onboarding around the evidence pipeline.
+- v1.1: added immutable robot, scene, state, event, and timeline contracts.
+- v1.2: added JSON Schemas, compatibility fixtures, telemetry bridges,
+  diagnostics, multi-robot views, and browser-safe exports.
+- v1.3: added immutable provenance, descriptive ownership, validation,
+  reporting, and replay/twin/diagnostic propagation.
+- v1.4: added canonical evidence manifests, cycle-safe lineage queries,
+  provenance coverage, and artifact exporter integration.
+- v1.5: froze candidate APIs, automated declaration and packed-consumer gates,
+  expanded serialized fixtures, and hardened runner cleanup.
 
 Historical feature releases are recorded in `CHANGELOG.md`.
 
 ## Required before v1.0
 
 - Add a generated public declaration compatibility gate.
-- Add a packed-tarball consumer test from a clean Node.js ESM project.
+- Keep the packed-tarball browser-entry consumer gate in release verification.
 - Decide the final status of experimental adapter-stream and fleet-timeline
   contracts.
 - Decide whether internal-candidate root exports stay, move, or receive a
@@ -30,7 +39,7 @@ Historical feature releases are recorded in `CHANGELOG.md`.
 
 ## Strongly recommended
 
-- Add golden compatibility fixtures for every serialized format.
+- Extend golden compatibility fixtures to older non-twin serialized formats.
 - Add single/fleet runner conformance tests.
 - Add risk-based coverage reporting.
 - Smoke-run examples in CI.
@@ -41,9 +50,22 @@ Historical feature releases are recorded in `CHANGELOG.md`.
 
 - Atomic artifact replacement and optional integrity digests.
 - Internal scenario/fleet runtime deduplication when justified by maintenance.
-- Package subpaths if pure/browser consumers emerge.
-- Diagnostics over existing replay/timeline/artifact evidence.
+- Generated schema compatibility and declaration reports.
+- Mapper conformance and bounded large-timeline indexing.
 - External integration packages for transports, middleware, or devices.
+
+## Remaining release-candidate work
+
+Confirm repository ownership, support/private security channels, npm
+two-factor and provenance controls, and complete a release-candidate period
+against the exact packed artifact.
+
+## Recommended first post-v1 milestone
+
+Focus v1.1 on reliability and compatibility ergonomics: validate-on-load APIs,
+atomic artifact replacement, broader negative compatibility fixtures, and
+generated human-readable API/format change reports. Do not expand into
+rendering, middleware, networking, or cloud infrastructure.
 
 The current digital-twin priorities and constraints are maintained in
 [Future Roadmap](FutureRoadmap.md).

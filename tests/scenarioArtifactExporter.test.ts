@@ -45,7 +45,7 @@ describe("exportScenarioRunArtifacts", () => {
       join(written.experimentPath, "replay-log.json"),
       "utf8",
     ))).toEqual(result.replayLog);
-    expect(loaded.files).toHaveLength(10);
+    expect(loaded.files).toHaveLength(13);
   });
 
   it("summarizes identity, counts, final state, and duration", () => {
@@ -84,6 +84,9 @@ describe("exportScenarioRunArtifacts", () => {
       "replay-log.json",
       "telemetry-summary.json",
       "reports/scenario-report.txt",
+      "evidence/evidence-manifest.json",
+      "evidence/evidence-manifest-report.txt",
+      "evidence/provenance-coverage-report.txt",
     ]) {
       expect(readFileSync(join(first.experimentPath, path), "utf8")).toBe(
         readFileSync(join(second.experimentPath, path), "utf8"),

@@ -23,6 +23,9 @@ export const EXPERIMENT_ARTIFACT_FILE_KINDS = [
   "fleet-event-timeline",
   "timeline-report",
   "timeline-summary",
+  "evidence-manifest",
+  "evidence-manifest-report",
+  "provenance-coverage-report",
 ] as const;
 
 export type ExperimentArtifactFileKind =

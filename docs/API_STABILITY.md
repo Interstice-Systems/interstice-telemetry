@@ -1,5 +1,9 @@
 # API Stability
 
+For the v1 release-candidate classification, see
+[Public API Freeze for v1](API_FREEZE_V1.md). That document supersedes this
+historical 0.12 classification where they differ.
+
 Interstice Telemetry 0.12 classifies every export from `src/index.ts` before
 the v1 contract is frozen. No exports were removed in this release.
 

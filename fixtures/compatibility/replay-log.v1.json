@@ -1,0 +1,18 @@
+{
+  "version": "0.3.0",
+  "robotId": "compat-rover",
+  "createdAt": "1970-01-01T00:00:01.000Z",
+  "eventCount": 1,
+  "events": [
+    {
+      "id": "compat-rover:1",
+      "type": "telemetry.snapshot",
+      "timestamp": 1000,
+      "robotId": "compat-rover",
+      "sequence": 1,
+      "payload": {
+        "fixture": true
+      }
+    }
+  ]
+}

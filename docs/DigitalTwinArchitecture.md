@@ -1,6 +1,6 @@
 # Digital Twin Architecture
 
-Interstice Telemetry v1.1 adds a durable description of an autonomous system
+Interstice Telemetry adds a durable description of an autonomous system
 and its state without turning the package into a simulator. The contracts
 separate four concerns that often become accidentally coupled:
 
@@ -71,3 +71,8 @@ explicit JSON metadata.
 
 No model in this release performs rendering, collision detection, dynamics,
 networking, device I/O, or real-time scheduling.
+
+Version 1.2 surrounds these v1.1 contracts with draft 2020-12 schemas,
+compatibility fixtures, explicit evidence-to-state bridges, deterministic
+diagnostics, multi-robot derived views, and a browser-safe entry. These layers
+validate and organize supplied evidence; they do not infer physical truth.

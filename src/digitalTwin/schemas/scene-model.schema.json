@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://interstice.dev/schemas/digital-twin/scene-model.schema.json",
+  "title": "Interstice Scene Model",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "type",
+    "coordinateSystem",
+    "landmarks",
+    "staticObstacles",
+    "annotations",
+    "regions",
+    "semanticLabels",
+    "metadata"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "minLength": 1 },
+    "coordinateSystem": {
+      "type": "object",
+      "required": ["frameId", "handedness", "lengthUnit", "upAxis"],
+      "properties": {
+        "frameId": { "type": "string", "minLength": 1 },
+        "handedness": { "enum": ["left", "right"] },
+        "lengthUnit": {
+          "enum": ["millimeter", "centimeter", "meter", "kilometer"]
+        },
+        "upAxis": { "enum": ["x", "y", "z"] }
+      },
+      "additionalProperties": false
+    },
+    "landmarks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/landmark" }
+    },
+    "staticObstacles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/staticObstacle" }
+    },
+    "annotations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/annotation" }
+    },
+    "regions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/region" }
+    },
+    "semanticLabels": { "$ref": "#/$defs/stringArray" },
+    "metadata": { "$ref": "#/$defs/jsonObject" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "vector3": {
+      "type": "object",
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "quaternion": {
+      "type": "object",
+      "required": ["x", "y", "z", "w"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" },
+        "w": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "transform": {
+      "type": "object",
+      "required": ["translation", "rotation"],
+      "properties": {
+        "translation": { "$ref": "#/$defs/vector3" },
+        "rotation": { "$ref": "#/$defs/quaternion" }
+      },
+      "additionalProperties": false
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "landmark": {
+      "type": "object",
+      "required": ["id", "name", "pose", "semanticLabels"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "pose": { "$ref": "#/$defs/transform" },
+        "semanticLabels": { "$ref": "#/$defs/stringArray" },
+        "metadata": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "staticObstacle": {
+      "type": "object",
+      "required": ["id", "name", "pose", "shape", "semanticLabels"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "pose": { "$ref": "#/$defs/transform" },
+        "shape": { "$ref": "#/$defs/jsonObject" },
+        "semanticLabels": { "$ref": "#/$defs/stringArray" },
+        "metadata": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "annotation": {
+      "type": "object",
+      "required": ["id", "position", "text", "semanticLabels"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "position": { "$ref": "#/$defs/vector3" },
+        "text": { "type": "string" },
+        "semanticLabels": { "$ref": "#/$defs/stringArray" },
+        "metadata": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "region": {
+      "type": "object",
+      "required": ["id", "name", "boundary", "semanticLabels"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "boundary": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/vector3" }
+        },
+        "semanticLabels": { "$ref": "#/$defs/stringArray" },
+        "metadata": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "jsonValue": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+        { "$ref": "#/$defs/jsonObject" }
+      ]
+    },
+    "jsonObject": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+    }
+  }
+}

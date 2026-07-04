@@ -9,6 +9,74 @@ fields.
 
 - No unreleased changes.
 
+## 1.5.0 — 2026-07-03
+
+### Added
+
+- v1 API freeze classification and an exact generated-declaration baseline.
+- CI declaration compatibility and packed Node/TypeScript/browser consumer
+  gates.
+- Seven serialized compatibility fixtures with validation and deterministic
+  round-trip tests.
+- Release checklist, v1 release plan, and conservative RC readiness review.
+- Focused scenario/fleet runner failure-cleanup regression tests.
+
+### Changed
+
+- Scenario and fleet runners now stop recorders, stop streams, and unsubscribe
+  internal handlers when execution fails.
+- Package metadata now declares repository, homepage, issue tracker, and
+  release-oriented keywords.
+
+## 1.4.0 — 2026-07-03
+
+### Added
+
+- Immutable canonical evidence manifest entries and relationships.
+- Deterministic manifest builders, validation, serialization, and reports.
+- Cycle-safe lineage traversal and evidence lookup queries.
+- Provenance coverage summaries and text reports.
+- Evidence manifest, manifest report, and provenance coverage files in
+  scenario and fleet artifact exports.
+- Evidence examples, tests, documentation, and migration guidance.
+
+### Changed
+
+- Added three artifact file kinds without changing artifact bundle version
+  `0.8.0` or existing replay, twin, provenance, and artifact structures.
+
+## 1.3.0 — 2026-07-03
+
+### Added
+
+- Immutable canonical evidence provenance and descriptive ownership contracts.
+- Deterministic provenance builders, validation, identifiers, and text reports.
+- Optional provenance propagation through telemetry events, replay recording,
+  twin timeline bridges, and twin diagnostic reports.
+- Browser-safe provenance exports, examples, tests, and migration guidance.
+
+### Changed
+
+- Added optional provenance fields without changing replay or twin format
+  versions; values without provenance retain their prior serialized shapes.
+
+## 1.2.0 — 2026-07-03
+
+### Added
+
+- Draft 2020-12 schemas, isolated Ajv validation, and stable v1.1 fixtures for
+  robot state, scene, and twin timeline contracts.
+- Explicit deterministic telemetry snapshot and replay-event state bridges.
+- Rule-based robot-state and timeline diagnostic reports.
+- Deterministic multi-robot twin views and point-in-time state queries.
+- Browser-safe `interstice-telemetry/digital-twin` package exports.
+- Serializable twin replay cursor state.
+
+### Changed
+
+- Added optional canonical `RobotState.operatingMode`; existing serialized
+  state and root exports remain compatible.
+
 ## 1.1.0 — 2026-07-02
 
 ### Added

@@ -31,4 +31,6 @@ export interface TelemetrySnapshot {
   signalStrength: number;
   imu: ImuTelemetry;
   state: RobotState;
+  provenance?: EvidenceProvenance;
 }
+import type { EvidenceProvenance } from "./provenance/provenanceTypes.js";

@@ -15,8 +15,10 @@ import {
   type RobotState,
   type RobotStateInput,
 } from "./robotState.js";
+import type { EvidenceProvenance } from "../provenance/provenanceTypes.js";
 
 export const TWIN_TIMELINE_VERSION = "1.0.0";
+export const TWIN_REPLAY_CURSOR_STATE_VERSION = "1.0.0";
 
 export interface TwinTimeline {
   readonly schemaVersion: string;
@@ -25,6 +27,7 @@ export interface TwinTimeline {
   readonly states: readonly RobotState[];
   readonly events: readonly ReplayEvent[];
   readonly metadata: Readonly<Record<string, JsonValue>>;
+  readonly provenance?: EvidenceProvenance;
 }
 
 export interface TwinTimelineInput {
@@ -34,6 +37,13 @@ export interface TwinTimelineInput {
   readonly states: readonly RobotState[];
   readonly events?: readonly ReplayEvent[];
   readonly metadata?: Readonly<Record<string, JsonValue>>;
+  readonly provenance?: EvidenceProvenance;
+}
+
+export interface TwinReplayCursorState {
+  readonly schemaVersion: string;
+  readonly robotId: string;
+  readonly index: number;
 }
 
 export interface TwinTelemetryRecord<TPayload = JsonValue> {
@@ -93,6 +103,9 @@ export const createTwinTimeline = (input: TwinTimelineInput): TwinTimeline => {
       states,
       events,
       metadata: input.metadata ?? {},
+      ...(input.provenance === undefined
+        ? {}
+        : { provenance: input.provenance }),
     },
     "twinTimeline",
   );
@@ -142,6 +155,7 @@ export const deserializeTwinTimeline = (json: string): TwinTimeline => {
     readonly states: readonly RobotStateInput[];
     readonly events?: readonly ReplayEventInput[];
     readonly metadata?: Readonly<Record<string, JsonValue>>;
+    readonly provenance?: EvidenceProvenance;
   }>(json, "twinTimeline");
 
   return createTwinTimeline({
@@ -157,6 +171,9 @@ export const deserializeTwinTimeline = (json: string): TwinTimeline => {
     ...(input.events === undefined
       ? {}
       : { events: input.events.map(createReplayEvent) }),
+    ...(input.provenance === undefined
+      ? {}
+      : { provenance: input.provenance }),
   });
 };
 
@@ -210,5 +227,29 @@ export class TwinReplayCursor {
 
   getIndex(): number {
     return this.index;
+  }
+
+  getState(): TwinReplayCursorState {
+    return toImmutableJson(
+      {
+        schemaVersion: TWIN_REPLAY_CURSOR_STATE_VERSION,
+        robotId: this.timeline.robotId,
+        index: this.index,
+      },
+      "twinReplayCursorState",
+    );
+  }
+
+  restore(state: TwinReplayCursorState): void {
+    if (
+      state.schemaVersion !== TWIN_REPLAY_CURSOR_STATE_VERSION ||
+      state.robotId !== this.timeline.robotId ||
+      !Number.isInteger(state.index) ||
+      state.index < -1 ||
+      state.index >= this.timeline.states.length
+    ) {
+      throw new TypeError("replay cursor state is incompatible with this timeline");
+    }
+    this.index = state.index;
   }
 }

@@ -1,5 +1,7 @@
 import type { TelemetryEvent } from "../events/eventTypes.js";
 import { cloneTelemetryEvent } from "../events/cloneEvent.js";
+import { deriveProvenance } from "../provenance/provenanceBuilder.js";
+import type { EvidenceProvenance } from "../provenance/provenanceTypes.js";
 import {
   REPLAY_LOG_VERSION,
   type ReplayLog,
@@ -12,6 +14,7 @@ export interface ReplayRecorderOptions {
   version?: string;
   createdAt?: Date | string | number;
   seed?: number | string;
+  provenance?: EvidenceProvenance;
 }
 
 const toIsoString = (value: Date | string | number): string => {
@@ -79,6 +82,22 @@ export class ReplayRecorder {
       ...(metadata === undefined
         ? {}
         : { metadata: structuredClone(metadata) }),
+      ...((this.options.provenance ?? this.events[0]?.provenance) === undefined
+        ? {}
+        : {
+            provenance: deriveProvenance(
+              (this.options.provenance ??
+                this.events[0]?.provenance) as EvidenceProvenance,
+              {
+                name: "Replay Recorder",
+                timestamp: Math.max(
+                  (this.options.provenance ?? this.events[0]?.provenance)!
+                    .timestamp,
+                  Date.parse(createdAt),
+                ),
+              },
+            ),
+          }),
     };
   }
 

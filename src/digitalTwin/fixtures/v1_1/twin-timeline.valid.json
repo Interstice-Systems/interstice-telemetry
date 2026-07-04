@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "robotId": "rover-1",
+  "clockDomain": "unix-ms",
+  "states": [{
+    "schemaVersion": "1.0.0",
+    "timestamp": 1000,
+    "robotId": "rover-1",
+    "operatingMode": "active",
+    "globalPose": {
+      "frameId": "world",
+      "position": { "x": 1, "y": 0, "z": 0 },
+      "orientation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    },
+    "linearVelocity": { "x": 1, "y": 0, "z": 0 },
+    "angularVelocity": { "x": 0, "y": 0, "z": 0.1 },
+    "jointStates": {},
+    "actuatorOutputs": {},
+    "sensorValues": {},
+    "batteryStatus": { "charge": 0.8 },
+    "healthIndicators": [],
+    "metadata": { "sceneId": "robotics-lab-1" }
+  }],
+  "events": [{
+    "schemaVersion": "1.0.0",
+    "id": "mission-start",
+    "robotId": "rover-1",
+    "timestamp": 1000,
+    "sequence": 0,
+    "type": "mission.started",
+    "metadata": {}
+  }],
+  "metadata": { "sceneId": "robotics-lab-1" }
+}

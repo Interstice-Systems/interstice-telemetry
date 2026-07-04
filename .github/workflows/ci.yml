@@ -39,3 +39,10 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Check public API compatibility
+        run: node scripts/check-api-compatibility.mjs
+
+      - name: Test packed Node and browser consumers
+        if: matrix.node-version == 20
+        run: node scripts/test-packed-consumers.mjs

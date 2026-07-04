@@ -2,6 +2,7 @@ import type { DeterministicClock } from "../clock/clockTypes.js";
 import type { Fault } from "../faults/faultTypes.js";
 import type { RobotSimulator } from "../simulator/robotSimulator.js";
 import type { RobotState, TelemetrySnapshot } from "../types.js";
+import { deriveProvenance } from "../provenance/provenanceBuilder.js";
 import type {
   FaultInjectedPayload,
   StateChangedPayload,
@@ -112,6 +113,17 @@ export class TelemetryStream {
       robotId: this.simulator.robotId,
       sequence,
       payload,
+      ...(snapshot.provenance === undefined
+        ? {}
+        : {
+            provenance: deriveProvenance(snapshot.provenance, {
+              name: "Telemetry Stream",
+              timestamp: Math.max(
+                snapshot.provenance.timestamp,
+                this.clock?.now() ?? Date.parse(snapshot.timestamp),
+              ),
+            }),
+          }),
     };
 
     for (const handler of [...this.handlers]) {

@@ -4,6 +4,9 @@ import { renderReplayReport } from "../console/replayReport.js";
 import { renderScenarioReport } from "../console/scenarioReport.js";
 import { renderTelemetrySnapshot } from "../console/telemetryReport.js";
 import type { ScenarioRunResult } from "../scenarios/scenarioTypes.js";
+import { buildScenarioEvidenceManifest } from "../evidence/evidenceManifestBuilder.js";
+import { renderProvenanceCoverageReport } from "../evidence/evidenceCoverage.js";
+import { renderEvidenceManifestReport } from "../evidence/evidenceManifestReport.js";
 import {
   createArtifactMetadataDocument,
   createExperimentArtifactBundle,
@@ -33,6 +36,21 @@ const SCENARIO_FILES: ExperimentArtifactFile[] = [
   { path: "reports/event-timeline.txt", kind: "report", format: "txt" },
   { path: "reports/fault-report.txt", kind: "report", format: "txt" },
   { path: "reports/replay-report.txt", kind: "report", format: "txt" },
+  {
+    path: "evidence/evidence-manifest.json",
+    kind: "evidence-manifest",
+    format: "json",
+  },
+  {
+    path: "evidence/evidence-manifest-report.txt",
+    kind: "evidence-manifest-report",
+    format: "txt",
+  },
+  {
+    path: "evidence/provenance-coverage-report.txt",
+    kind: "provenance-coverage-report",
+    format: "txt",
+  },
 ];
 
 export const createScenarioTelemetrySummary = (
@@ -68,7 +86,7 @@ export const exportScenarioRunArtifacts = (
     metadata,
     files: SCENARIO_FILES,
   });
-  const contents: ArtifactFileContents = {
+  const contents: Record<string, unknown> = {
     "metadata.json": createArtifactMetadataDocument(bundle),
     "scenario.json": result.scenario,
     "replay-log.json": result.replayLog,
@@ -87,6 +105,16 @@ export const exportScenarioRunArtifacts = (
     "reports/fault-report.txt": renderFaultReport(result.events),
     "reports/replay-report.txt": renderReplayReport(result.replayLog),
   };
+  const manifest = buildScenarioEvidenceManifest(bundle, contents);
+  contents["evidence/evidence-manifest.json"] = manifest;
+  contents["evidence/evidence-manifest-report.txt"] =
+    renderEvidenceManifestReport(manifest);
+  contents["evidence/provenance-coverage-report.txt"] =
+    renderProvenanceCoverageReport(manifest);
 
-  return writeExperimentArtifacts(bundle, contents, options);
+  return writeExperimentArtifacts(
+    bundle,
+    contents satisfies ArtifactFileContents,
+    options,
+  );
 };

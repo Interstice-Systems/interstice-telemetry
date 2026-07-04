@@ -58,6 +58,11 @@ describe("exportFleetRunArtifacts", () => {
         ),
       ),
     ).toBe(true);
+    expect(
+      existsSync(
+        join(written.experimentPath, "evidence/evidence-manifest.json"),
+      ),
+    ).toBe(true);
     expect(JSON.parse(readFileSync(
       join(written.experimentPath, "fleet-replay-log.json"),
       "utf8",
@@ -67,7 +72,7 @@ describe("exportFleetRunArtifacts", () => {
       "robot-beta",
       "robot-gamma",
     ]);
-    expect(loaded.files).toHaveLength(31);
+    expect(loaded.files).toHaveLength(34);
   });
 
   it("summarizes fleet identity, counts, final states, and duration", () => {

@@ -1,5 +1,6 @@
 import type { Fault } from "../faults/faultTypes.js";
 import { ADAPTER_EVENT_TYPES } from "../hardware/adapterEventTypes.js";
+import type { EvidenceProvenance } from "../provenance/provenanceTypes.js";
 import type {
   RobotState,
   TelemetrySnapshot,
@@ -23,6 +24,7 @@ export interface TelemetryEvent {
   robotId: string;
   sequence: number;
   payload: unknown;
+  provenance?: EvidenceProvenance;
 }
 
 export interface StreamLifecyclePayload {

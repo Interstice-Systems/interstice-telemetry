@@ -99,6 +99,12 @@ describe("twin timeline", () => {
     expect(cursor.seek(500)).toBeUndefined();
     cursor.reset();
     expect(cursor.getIndex()).toBe(-1);
+
+    cursor.next();
+    const saved = cursor.getState();
+    const restoredCursor = new TwinReplayCursor(timeline);
+    restoredCursor.restore(saved);
+    expect(restoredCursor.current()?.timestamp).toBe(1_000);
   });
 
   it("rejects ambiguous or cross-robot reconstruction", () => {

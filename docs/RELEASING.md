@@ -15,20 +15,18 @@ Only maintainers should publish a release.
 
 ```bash
 npm ci
-npm test
-npm run typecheck
-npm run lint
-npm run build
+npm run check:release
 npm pack --dry-run
 git diff --check
 ```
 
 Inspect the package file list. It should contain the license, README, package
-metadata, compiled JavaScript, and declarations—never source tests, local
-artifacts, coverage, credentials, or review notes.
+metadata, compiled JavaScript, declarations, schemas, and compatibility
+fixtures—never source tests, local artifacts, coverage, credentials, or review
+notes.
 
-For v1 release candidates, install the generated tarball in a clean temporary
-Node.js ESM project and run a basic scenario through the package root.
+`check:release` includes the declaration compatibility gate and clean packed
+Node ESM, TypeScript, and browser-safe consumers.
 
 ## Release
 

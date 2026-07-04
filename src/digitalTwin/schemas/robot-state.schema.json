@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://interstice.dev/schemas/digital-twin/robot-state.schema.json",
+  "title": "Interstice Canonical Robot State",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "timestamp",
+    "robotId",
+    "globalPose",
+    "linearVelocity",
+    "angularVelocity",
+    "jointStates",
+    "actuatorOutputs",
+    "sensorValues",
+    "healthIndicators",
+    "metadata"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "timestamp": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "robotId": { "type": "string", "minLength": 1 },
+    "operatingMode": { "$ref": "#/$defs/operatingMode" },
+    "globalPose": { "$ref": "#/$defs/pose" },
+    "linearVelocity": { "$ref": "#/$defs/vector3" },
+    "angularVelocity": { "$ref": "#/$defs/vector3" },
+    "jointStates": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/jointState" }
+    },
+    "actuatorOutputs": { "$ref": "#/$defs/jsonObject" },
+    "sensorValues": { "$ref": "#/$defs/jsonObject" },
+    "batteryStatus": { "$ref": "#/$defs/batteryStatus" },
+    "healthIndicators": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/healthIndicator" }
+    },
+    "metadata": { "$ref": "#/$defs/jsonObject" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "finiteNumber": { "type": "number" },
+    "vector3": {
+      "type": "object",
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "$ref": "#/$defs/finiteNumber" },
+        "y": { "$ref": "#/$defs/finiteNumber" },
+        "z": { "$ref": "#/$defs/finiteNumber" }
+      },
+      "additionalProperties": false
+    },
+    "quaternion": {
+      "type": "object",
+      "required": ["x", "y", "z", "w"],
+      "properties": {
+        "x": { "$ref": "#/$defs/finiteNumber" },
+        "y": { "$ref": "#/$defs/finiteNumber" },
+        "z": { "$ref": "#/$defs/finiteNumber" },
+        "w": { "$ref": "#/$defs/finiteNumber" }
+      },
+      "additionalProperties": false
+    },
+    "pose": {
+      "type": "object",
+      "required": ["frameId", "position", "orientation"],
+      "properties": {
+        "frameId": { "type": "string", "minLength": 1 },
+        "position": { "$ref": "#/$defs/vector3" },
+        "orientation": { "$ref": "#/$defs/quaternion" }
+      },
+      "additionalProperties": false
+    },
+    "operatingMode": {
+      "type": "string",
+      "enum": ["idle", "active", "returning", "charging", "faulted", "offline"]
+    },
+    "jointState": {
+      "type": "object",
+      "required": ["position"],
+      "properties": {
+        "position": { "$ref": "#/$defs/finiteNumber" },
+        "velocity": { "$ref": "#/$defs/finiteNumber" },
+        "effort": { "$ref": "#/$defs/finiteNumber" }
+      },
+      "additionalProperties": false
+    },
+    "batteryStatus": {
+      "type": "object",
+      "required": ["charge"],
+      "properties": {
+        "charge": { "type": "number", "minimum": 0, "maximum": 1 },
+        "voltage": { "$ref": "#/$defs/finiteNumber" },
+        "current": { "$ref": "#/$defs/finiteNumber" },
+        "temperature": { "$ref": "#/$defs/finiteNumber" },
+        "state": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "healthIndicator": {
+      "type": "object",
+      "required": ["id", "level"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "level": {
+          "type": "string",
+          "enum": ["nominal", "info", "warning", "error", "critical"]
+        },
+        "message": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/jsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "jsonValue": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+        { "$ref": "#/$defs/jsonObject" }
+      ]
+    },
+    "jsonObject": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+    }
+  }
+}

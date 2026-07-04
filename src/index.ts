@@ -77,6 +77,57 @@ export {
   exportScenarioRunArtifacts,
 } from "./artifacts/scenarioArtifactExporter.js";
 
+/** Canonical evidence manifests, lineage queries, and provenance coverage. */
+export {
+  addEvidenceEntry,
+  addEvidenceRelationship,
+  buildEvidenceManifestFromArtifactBundle,
+  buildFleetEvidenceManifest,
+  buildScenarioEvidenceManifest,
+  createEvidenceManifest,
+  createEvidenceManifestEntry,
+  createEvidenceRelationship,
+  deserializeEvidenceManifest,
+  serializeEvidenceManifest,
+} from "./evidence/evidenceManifestBuilder.js";
+export type {
+  CreateEvidenceManifestInput,
+  EvidenceManifestEntryInput,
+  EvidenceRelationshipInput,
+} from "./evidence/evidenceManifestBuilder.js";
+export {
+  findEvidenceByKind,
+  findEvidenceByProvenance,
+  findEvidenceByRobot,
+  traceEvidenceAncestors,
+  traceEvidenceDescendants,
+} from "./evidence/evidenceLineage.js";
+export {
+  renderProvenanceCoverageReport,
+  summarizeProvenanceCoverage,
+} from "./evidence/evidenceCoverage.js";
+export { renderEvidenceManifestReport } from "./evidence/evidenceManifestReport.js";
+export {
+  EVIDENCE_FORMATS,
+  EVIDENCE_KINDS,
+  EVIDENCE_MANIFEST_VERSION,
+  EVIDENCE_RELATIONSHIP_TYPES,
+} from "./evidence/evidenceManifestTypes.js";
+export type {
+  EvidenceFormat,
+  EvidenceKind,
+  EvidenceManifest,
+  EvidenceManifestEntry,
+  EvidenceManifestValidationResult,
+  EvidenceRelationship,
+  EvidenceRelationshipType,
+  ProvenanceCoverageSummary,
+} from "./evidence/evidenceManifestTypes.js";
+export {
+  isSafeRelativeEvidencePath,
+  validateEvidenceManifest,
+} from "./evidence/evidenceManifestValidator.js";
+
 /** Pure terminal and text report renderers. */
 export type {
   ConsoleReport,
@@ -213,6 +264,59 @@ export type {
 export { validateReplayLog } from "./replay/replayValidator.js";
 export type { ReplayValidationResult } from "./replay/replayValidator.js";
 
+/** Immutable, deterministic evidence provenance and descriptive ownership. */
+export {
+  appendTransformation,
+  createAdapterProvenance,
+  createDerivedProvenance,
+  createImporterProvenance,
+  createManualProvenance,
+  createProvenance,
+  createReplayProvenance,
+  createSimulationProvenance,
+  createTelemetryProvenance,
+  deriveProvenance,
+} from "./provenance/provenanceBuilder.js";
+export type {
+  CreateProvenanceInput,
+  CreateTypedProvenanceInput,
+  DeriveProvenanceOptions,
+  ProvenanceStepInput,
+} from "./provenance/provenanceBuilder.js";
+export {
+  createDeterministicProvenanceId,
+  deterministicProvenanceStringify,
+  provenanceTimestampToIso,
+  toImmutableProvenanceValue,
+} from "./provenance/provenanceHelpers.js";
+export {
+  createEvidenceOwnership,
+  DEFAULT_EVIDENCE_OWNERSHIP,
+} from "./provenance/provenanceOwnership.js";
+export { renderProvenanceReport } from "./provenance/provenanceReport.js";
+export {
+  EVIDENCE_OWNER_TYPES,
+  EVIDENCE_PROVENANCE_VERSION,
+  EVIDENCE_VISIBILITIES,
+  PROVENANCE_VERSION,
+  PROVENANCE_CONFIDENCE_LEVELS,
+  PROVENANCE_SOURCE_TYPES,
+} from "./provenance/provenanceTypes.js";
+export type {
+  EvidenceOwnerType,
+  EvidenceOwnership,
+  EvidenceProvenance,
+  EvidenceVisibility,
+  ProvenanceConfidence,
+  ProvenanceSourceType,
+  ProvenanceStep,
+  ProvenanceValidationResult,
+} from "./provenance/provenanceTypes.js";
+export {
+  validateEvidenceProvenance,
+  validateProvenance,
+} from "./provenance/provenanceValidator.js";
+
 /** Reusable deterministic single-robot scenarios. */
 export {
   BUILT_IN_SCENARIO_IDS,
@@ -316,12 +420,14 @@ export type {
 export {
   createRobotState,
   deserializeRobotState,
+  ROBOT_OPERATING_MODES,
   ROBOT_STATE_VERSION,
   robotStatesEqual,
   serializeRobotState,
 } from "./digitalTwin/robotState.js";
 export type {
   BatteryStatus,
+  CanonicalRobotOperatingMode,
   HealthIndicator,
   JointState,
   Pose,
@@ -369,6 +475,7 @@ export {
   deserializeTwinTimeline,
   reconstructTwinTimeline,
   serializeTwinTimeline,
+  TWIN_REPLAY_CURSOR_STATE_VERSION,
   TWIN_TIMELINE_VERSION,
   TwinReplayCursor,
 } from "./digitalTwin/twinTimeline.js";
@@ -377,7 +484,79 @@ export type {
   TwinTelemetryRecord,
   TwinTimeline,
   TwinTimelineInput,
+  TwinReplayCursorState,
 } from "./digitalTwin/twinTimeline.js";
+
+/** Machine-readable digital-twin schemas and v1.1 compatibility fixtures. */
+export {
+  DIGITAL_TWIN_FIXTURE_VERSION_V1_1,
+  robotStateFixtureV1_1,
+  sceneModelFixtureV1_1,
+  twinTimelineFixtureV1_1,
+} from "./digitalTwin/fixtures.js";
+export {
+  robotStateSchema,
+  sceneModelSchema,
+  twinTimelineSchema,
+  validateDigitalTwinSchema,
+  validateRobotStateSchema,
+  validateSceneModelSchema,
+  validateTwinTimelineSchema,
+} from "./digitalTwin/schemaValidation.js";
+export type {
+  DigitalTwinSchemaName,
+  SchemaValidationIssue,
+  SchemaValidationResult,
+} from "./digitalTwin/schemaValidation.js";
+
+/** Explicit deterministic telemetry/replay to canonical-state bridges. */
+export {
+  buildTwinTimelineFromReplay,
+  buildTwinTimelineFromTelemetry,
+  defaultReplayEventMapper,
+  defaultTelemetrySnapshotMapper,
+  mapReplayEventToState,
+  mapTelemetrySnapshotToState,
+  TELEMETRY_BRIDGE_SOURCES,
+} from "./digitalTwin/telemetryBridge.js";
+export type {
+  CanonicalRobotState,
+  TelemetryBridgeBuildOptions,
+  TelemetryBridgeContext,
+  TelemetryBridgeMapOptions,
+  TelemetryBridgeSource,
+  TelemetryToStateMapper,
+} from "./digitalTwin/telemetryBridge.js";
+
+/** Rule-based deterministic digital-twin evidence diagnostics. */
+export {
+  createTwinDiagnosticReport,
+  runTwinDiagnostics,
+  TWIN_DIAGNOSTIC_SEVERITIES,
+  validateRobotState,
+  validateTwinTimeline,
+} from "./digitalTwin/twinDiagnostics.js";
+export type {
+  TwinDiagnostic,
+  TwinDiagnosticOptions,
+  TwinDiagnosticReport,
+  TwinDiagnosticSeverity,
+} from "./digitalTwin/twinDiagnostics.js";
+
+/** Derived multi-robot state views for future visualization consumers. */
+export {
+  createMultiRobotTwinView,
+  getRobotTwinTimeline,
+  getTwinStatesAtTime,
+  MULTI_ROBOT_TWIN_VIEW_VERSION,
+  summarizeMultiRobotTwinView,
+  validateMultiRobotTwinView,
+} from "./digitalTwin/multiRobotTwinView.js";
+export type {
+  MultiRobotTwinView,
+  MultiRobotTwinViewOptions,
+  MultiRobotTwinViewSummary,
+} from "./digitalTwin/multiRobotTwinView.js";
 
 /** Future platform extension points; no integrations are implemented. */
 export type {

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "robotics-lab-1",
+  "name": "Robotics Lab",
+  "type": "laboratory",
+  "coordinateSystem": {
+    "frameId": "world",
+    "handedness": "right",
+    "lengthUnit": "meter",
+    "upAxis": "z"
+  },
+  "landmarks": [{
+    "id": "origin",
+    "name": "Origin",
+    "pose": {
+      "translation": { "x": 0, "y": 0, "z": 0 },
+      "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 }
+    },
+    "semanticLabels": ["calibration"]
+  }],
+  "staticObstacles": [],
+  "annotations": [],
+  "regions": [],
+  "semanticLabels": ["indoor"],
+  "metadata": {}
+}

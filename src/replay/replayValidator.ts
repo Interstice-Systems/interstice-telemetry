@@ -1,5 +1,6 @@
 import { TELEMETRY_EVENT_TYPES } from "../events/eventTypes.js";
 import { REPLAY_LOG_VERSION } from "./replayLog.js";
+import { validateEvidenceProvenance } from "../provenance/provenanceValidator.js";
 
 export interface ReplayValidationResult {
   valid: boolean;
@@ -51,6 +52,14 @@ export const validateReplayLog = (
     !Number.isFinite(Date.parse(log.createdAt))
   ) {
     errors.push("Replay log createdAt must be a valid date string.");
+  }
+
+  if (log.provenance !== undefined) {
+    const result = validateEvidenceProvenance(log.provenance);
+    errors.push(...result.errors.map((error) => `Replay provenance: ${error}`));
+    warnings.push(
+      ...result.warnings.map((warning) => `Replay provenance: ${warning}`),
+    );
   }
 
   if (!Array.isArray(log.events)) {

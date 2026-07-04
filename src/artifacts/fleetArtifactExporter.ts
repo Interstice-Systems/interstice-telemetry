@@ -15,6 +15,9 @@ import {
   renderFleetTimelineSummary,
 } from "../timeline/timelineReport.js";
 import { validateFleetEventTimeline } from "../timeline/timelineValidator.js";
+import { buildFleetEvidenceManifest } from "../evidence/evidenceManifestBuilder.js";
+import { renderProvenanceCoverageReport } from "../evidence/evidenceCoverage.js";
+import { renderEvidenceManifestReport } from "../evidence/evidenceManifestReport.js";
 import {
   createArtifactMetadataDocument,
   createExperimentArtifactBundle,
@@ -133,6 +136,21 @@ export const exportFleetRunArtifacts = (
       kind: "timeline-summary",
       format: "txt",
     },
+    {
+      path: "evidence/evidence-manifest.json",
+      kind: "evidence-manifest",
+      format: "json",
+    },
+    {
+      path: "evidence/evidence-manifest-report.txt",
+      kind: "evidence-manifest-report",
+      format: "txt",
+    },
+    {
+      path: "evidence/provenance-coverage-report.txt",
+      kind: "provenance-coverage-report",
+      format: "txt",
+    },
     ...robotIds.flatMap((robotId) =>
       robotFiles(robotId, folders.get(robotId)!),
     ),
@@ -202,6 +220,13 @@ export const exportFleetRunArtifacts = (
       robotResult.replayLog,
     );
   }
+
+  const manifest = buildFleetEvidenceManifest(bundle, contents);
+  contents["evidence/evidence-manifest.json"] = manifest;
+  contents["evidence/evidence-manifest-report.txt"] =
+    renderEvidenceManifestReport(manifest);
+  contents["evidence/provenance-coverage-report.txt"] =
+    renderProvenanceCoverageReport(manifest);
 
   return writeExperimentArtifacts(
     bundle,

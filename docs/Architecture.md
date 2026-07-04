@@ -30,6 +30,9 @@ FleetEventTimeline
         │
         v
 ExperimentArtifactBundle
+        │
+        v
+   EvidenceManifest
 ```
 
 `TelemetrySnapshot`, `TelemetryEvent`, `ReplayLog`, `FleetReplayLog`,
@@ -50,6 +53,9 @@ evidence chain.
 | `timeline` | Derived global fleet ordering and queries | Live sequence assignment |
 | `console` | Pure text views | Terminal control, logging |
 | `artifacts` | Indexed local JSON/text persistence | Databases, cloud storage |
+| `digitalTwin` | Immutable state contracts, schemas, bridges, diagnostics, multi-robot views | Rendering, physics, state inference |
+| `provenance` | Immutable origin, transformation, confidence, and ownership descriptions | Authentication, signatures, permissions |
+| `evidence` | Manifest inventory, declared relationships, lineage queries, and provenance coverage | Content verification, graph storage, trust |
 
 Dependencies should point from orchestration and views toward smaller data and
 behavior layers. Cross-layer composition belongs in scenario/fleet runners and
@@ -154,6 +160,30 @@ or read environment state. Applications choose where report strings go.
 
 JSON remains the machine-readable evidence format; report text is for humans.
 
+## Provenance
+
+Optional `EvidenceProvenance` accompanies evidence without embedding its
+payload. Replay recording, twin construction, and diagnostics preserve the
+origin and append ordered transformations. Canonical JSON ordering, explicit
+timestamps, content-derived non-cryptographic IDs, and recursive freezing make
+the records deterministic.
+
+Provenance describes evidence movement. It does not prove authenticity or
+enforce ownership. See [Evidence Provenance](EvidenceProvenance.md).
+
+## Evidence manifests
+
+`EvidenceManifest` is a derived, immutable inventory of an experiment package.
+Entries describe records or files; directed relationships describe declared
+production and containment edges. Lineage queries traverse those edges with
+cycle detection, while provenance coverage identifies entries without a
+`provenanceId`.
+
+Scenario and fleet exporters write the canonical JSON manifest and two pure
+text reports under `evidence/`. Existing artifact, replay, twin, and provenance
+contracts are not rewritten. A manifest describes evidence. It does not
+authenticate evidence. See [Evidence Manifest](EvidenceManifest.md).
+
 ## Artifacts
 
 Artifact exporters assemble completed scenario or fleet results into a
@@ -167,8 +197,9 @@ replacement are post-v1 candidates.
 
 ## Platform and extension boundaries
 
-The package targets Node.js 20+ ESM. Filesystem-backed artifact exports are
-part of the root package, so browser portability is not claimed.
+The package targets Node.js 20+ ESM. Filesystem-backed artifact exports remain
+part of the root package. The `interstice-telemetry/digital-twin` subpath
+contains only browser-safe contracts and pure utilities.
 
 Future integrations should wrap the core:
 
@@ -179,9 +210,11 @@ Future integrations should wrap the core:
 
 They should not introduce background behavior into the deterministic core.
 
-The v1.1 digital-twin layer adds immutable `Robot`, `RobotState`, `Scene`,
+The digital-twin layer adds immutable `Robot`, `RobotState`, `Scene`,
 `ReplayEvent`, and `TwinTimeline` contracts above this evidence pipeline. It
-does not alter existing evidence formats. See
+does not alter existing evidence formats. Version 1.2 adds schemas,
+compatibility fixtures, explicit telemetry bridges, diagnostics, and
+multi-robot views around those contracts. See
 [Digital Twin Architecture](DigitalTwinArchitecture.md) for the contract
 boundaries and future platform ports.
 
@@ -190,6 +223,13 @@ boundaries and future platform ports.
 The npm API and persisted formats have separate versions. Stable public exports
 follow [API Stability](API_STABILITY.md). Persisted values must carry their
 format version and pass the corresponding validator.
+
+The v1 release candidate stores all generated declarations in
+`compatibility/api-v1` and checks them exactly in CI. Representative replay,
+timeline, state, twin, provenance, manifest, and artifact documents live in
+`fixtures/compatibility` and are validated and round-tripped by tests. Packed
+consumer verification exercises the root and browser entry points from the
+actual tarball.
 
 Any change to random draw order, clock advancement, event order, timeline
 sorting, report formatting, or artifact serialization must follow the
